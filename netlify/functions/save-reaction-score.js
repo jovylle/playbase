@@ -100,7 +100,7 @@ exports.handler = async (event, context) => {
     // 4. Read current JSON files from GitHub
     const owner = 'jovylle'; // Your GitHub username
     const repo = 'playbase';
-    const branch = 'main';
+    const branch = 'master';
 
     // Helper function to get file from GitHub
     const getGitHubFile = async (path) => {
