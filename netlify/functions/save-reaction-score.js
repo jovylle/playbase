@@ -47,7 +47,33 @@ exports.handler = async (event, context) => {
       iss: process.env.GITHUB_APP_ID
     };
 
-    const jwtToken = jwt.sign(payload, process.env.GITHUB_PRIVATE_KEY.replace(/\\n/g, '\n'), { 
+    // Handle different private key formats
+    let privateKey = process.env.GITHUB_PRIVATE_KEY;
+    
+    // If the key doesn't have proper line breaks, fix it
+    if (privateKey.includes('\\n')) {
+      privateKey = privateKey.replace(/\\n/g, '\n');
+    }
+    
+    // Ensure proper formatting
+    if (!privateKey.includes('\n')) {
+      // If it's all on one line, reconstruct it properly
+      privateKey = privateKey
+        .replace('-----BEGIN PRIVATE KEY-----', '-----BEGIN PRIVATE KEY-----\n')
+        .replace('-----END PRIVATE KEY-----', '\n-----END PRIVATE KEY-----')
+        .replace(/(.{64})/g, '$1\n')  // Add newlines every 64 characters
+        .replace(/\n\n/g, '\n')       // Remove double newlines
+        .replace(/\n-----END/g, '\n-----END'); // Fix the end marker
+    }
+
+    console.log('Private key format check:', {
+      hasBeginMarker: privateKey.includes('-----BEGIN PRIVATE KEY-----'),
+      hasEndMarker: privateKey.includes('-----END PRIVATE KEY-----'),
+      hasNewlines: privateKey.includes('\n'),
+      length: privateKey.length
+    });
+
+    const jwtToken = jwt.sign(payload, privateKey, { 
       algorithm: 'RS256' 
     });
 
