@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/jovylle/playbase/schemas/reaction.schema.json",
+  "title": "Reaction Test Score",
+  "description": "Schema for reaction test game scores",
+  "type": "object",
+  "properties": {
+    "ms": {
+      "type": "integer",
+      "minimum": 80,
+      "maximum": 1000,
+      "description": "Reaction time in milliseconds"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when the score was achieved"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{8}$",
+      "description": "8-character hex ID for the score"
+    }
+  },
+  "required": ["ms", "timestamp", "id"],
+  "additionalProperties": false
+}

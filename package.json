@@ -1,0 +1,40 @@
+{
+  "name": "playbase",
+  "version": "1.0.0",
+  "description": "GitHub-based JSON database for public game data",
+  "main": "examples/netlify-function.js",
+  "scripts": {
+    "test": "node examples/test-github-app.js",
+    "validate": "ajv validate -s schemas/reaction.schema.json -d 'reaction/*.json'",
+    "dev": "netlify dev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jovylle/playbase.git"
+  },
+  "keywords": [
+    "github",
+    "json",
+    "database",
+    "games",
+    "serverless",
+    "netlify",
+    "badges"
+  ],
+  "author": "jovylle",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jovylle/playbase/issues"
+  },
+  "homepage": "https://github.com/jovylle/playbase#readme",
+  "dependencies": {
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "ajv-cli": "^5.0.0",
+    "netlify-cli": "^17.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
