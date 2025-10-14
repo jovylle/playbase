@@ -83,25 +83,6 @@
         .leaderboard {
             display: none;
         }
-        
-        /* Loading overlay */
-        .loading {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-        
-        .loading-text {
-            font-size: 18px;
-            color: white;
-        }
     </style>
 </head>
 <body>
@@ -111,17 +92,6 @@
             <h1 class="title">⚡ REACTION TESTER</h1>
             <p class="subtitle">How fast are your reflexes?</p>
             <button class="play-btn" onclick="startGame()">🎮 PLAY NOW</button>
-        </div>
-        
-        <!-- PLAYER INFO -->
-        <div class="player-info" id="playerInfo">
-            <div class="player-name" id="playerNameDisplay">Player</div>
-            <button class="edit-name-btn" onclick="editPlayerName()">✏️ Edit</button>
-        </div>
-        
-        <!-- LOADING SCREEN -->
-        <div class="loading" id="loading">
-            <div class="loading-text">⚡ Loading game assets...</div>
         </div>
     </div>
 
@@ -175,46 +145,6 @@
         
         // Initialize player identity immediately
         initPlayerIdentity();
-        
-        // Update UI with player name
-        function updatePlayerNameDisplay() {
-            document.getElementById('playerNameDisplay').textContent = playerName;
-        }
-        
-        // Edit player name functionality
-        function editPlayerName() {
-            const nameDisplay = document.getElementById('playerNameDisplay');
-            const currentName = playerName;
-            
-            // Hide edit button while editing
-            document.querySelector('.edit-name-btn').style.display = 'none';
-            
-            nameDisplay.innerHTML = `
-                <input type="text" class="name-input" value="${currentName}" id="nameInput" maxlength="20">
-                <button class="save-name-btn" onclick="savePlayerName()">💾</button>
-            `;
-            
-            document.getElementById('nameInput').focus();
-            document.getElementById('nameInput').select();
-            
-            // Save on Enter key
-            document.getElementById('nameInput').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') savePlayerName();
-            });
-        }
-        
-        function savePlayerName() {
-            const newName = document.getElementById('nameInput').value.trim();
-            if (newName && newName.length > 0) {
-                playerName = newName;
-                localStorage.setItem('playbase_player_name', playerName);
-            }
-            updatePlayerNameDisplay();
-            document.querySelector('.edit-name-btn').style.display = 'inline';
-        }
-        
-        // Initialize UI when page loads
-        setTimeout(updatePlayerNameDisplay, 100);
         
         function startGame() {
             if (!assetsLoaded) {
@@ -363,61 +293,7 @@
                     background: #7f8c8d;
                 }
                 
-                .player-info {
-                    position: absolute;
-                    top: 20px;
-                    left: 20px;
-                    background: white;
-                    padding: 12px 16px;
-                    border-radius: 8px;
-                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                    border: 1px solid #e0e0e0;
-                    font-size: 14px;
-                    color: #2c3e50;
-                }
-                
-                .player-name {
-                    font-weight: 600;
-                    margin-bottom: 4px;
-                }
-                
-                .edit-name-btn {
-                    background: none;
-                    border: none;
-                    color: #3498db;
-                    cursor: pointer;
-                    font-size: 12px;
-                    padding: 2px 4px;
-                    border-radius: 4px;
-                    transition: background 0.2s;
-                }
-                
-                .edit-name-btn:hover {
-                    background: #f8f9fa;
-                }
-                
-                .name-input {
-                    border: 1px solid #3498db;
-                    padding: 4px 8px;
-                    border-radius: 4px;
-                    font-size: 14px;
-                    width: 120px;
-                    margin-right: 8px;
-                }
-                
-                .save-name-btn {
-                    background: #3498db;
-                    color: white;
-                    border: none;
-                    padding: 4px 8px;
-                    border-radius: 4px;
-                    font-size: 12px;
-                    cursor: pointer;
-                }
-                
-                .save-name-btn:hover {
-                    background: #2980b9;
-                }
+                .leaderboard {
                     position: absolute;
                     top: 20px;
                     right: 20px;
