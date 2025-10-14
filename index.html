@@ -14,8 +14,10 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            overflow: hidden;
+            overflow-x: hidden;
             user-select: none;
+            min-height: 100vh;
+            touch-action: manipulation;
         }
         
         .game-container {
@@ -169,8 +171,10 @@
                 }
                 
                 .game-area {
-                    width: 400px;
-                    height: 400px;
+                    width: 80vw;
+                    max-width: 500px;
+                    height: 40vh;
+                    min-height: 300px;
                     border: 4px solid rgba(255,255,255,0.3);
                     border-radius: 20px;
                     display: flex;
@@ -178,20 +182,47 @@
                     justify-content: center;
                     margin: 32px 0;
                     cursor: pointer;
-                    transition: all 0.3s ease;
+                    transition: all 0.2s ease;
                     position: relative;
                     background: rgba(255,255,255,0.1);
-                }
-                
-                .game-area.ready {
-                    background: linear-gradient(45deg, #ff6b6b, #ff8e53);
-                    box-shadow: 0 0 50px rgba(255, 107, 107, 0.5);
-                    animation: readyPulse 0.5s infinite alternate;
+                    font-size: clamp(18px, 4vw, 28px);
                 }
                 
                 .game-area.waiting {
-                    background: rgba(255,255,255,0.1);
+                    background: linear-gradient(135deg, #4a90e2, #357abd);
                     border-color: rgba(255,255,255,0.5);
+                    box-shadow: 0 8px 32px rgba(74, 144, 226, 0.3);
+                }
+                
+                .game-area.ready {
+                    background: linear-gradient(135deg, #ff4757, #ff3742) !important;
+                    border-color: #ff6b7a !important;
+                    box-shadow: 0 0 50px rgba(255, 71, 87, 0.8) !important;
+                    animation: redPulse 0.3s infinite alternate !important;
+                    transform: scale(1.02);
+                }
+                
+                .game-area.too-early {
+                    background: linear-gradient(135deg, #ffa502, #ff7675);
+                    border-color: #fdcb6e;
+                    animation: shake 0.5s ease-in-out;
+                }
+                
+                @keyframes redPulse {
+                    from { 
+                        box-shadow: 0 0 30px rgba(255, 71, 87, 0.8);
+                        transform: scale(1.02);
+                    }
+                    to { 
+                        box-shadow: 0 0 60px rgba(255, 71, 87, 1);
+                        transform: scale(1.05);
+                    }
+                }
+                
+                @keyframes shake {
+                    0%, 100% { transform: translateX(0); }
+                    25% { transform: translateX(-10px); }
+                    75% { transform: translateX(10px); }
                 }
                 
                 @keyframes readyPulse {
@@ -306,14 +337,21 @@
     
     <!-- LAZY LOADED CONTENT - Added after play click -->
     <div class="game-screen">
-        <h2>Get Ready...</h2>
+        <h2>🎯 Reaction Test</h2>
         <div class="game-area waiting" id="gameArea" onclick="handleGameClick()">
             <div class="game-text" id="gameText">
-                Click when the area turns RED!
+                🎮 Click anywhere to start!<br>
+                <small>Wait for RED, then click as fast as you can!</small>
             </div>
         </div>
-        <div id="instructions">
-            Wait for the red signal, then click as fast as you can!
+        <div id="instructions" style="max-width: 500px; margin: 0 auto; padding: 0 20px; opacity: 0.8; line-height: 1.6;">
+            <p><strong>How to play:</strong></p>
+            <ol style="text-align: left; display: inline-block;">
+                <li>Click the blue area to start</li>
+                <li>Wait patiently (don't click!)</li>
+                <li>When it turns <span style="color: #ff4757; font-weight: bold;">RED</span> → Click immediately!</li>
+                <li>See your reaction time and ranking</li>
+            </ol>
         </div>
     </div>
     
@@ -344,33 +382,75 @@
             const gameArea = document.getElementById('gameArea');
             const gameText = document.getElementById('gameText');
             
+            // Reset state
             gameArea.className = 'game-area waiting';
-            gameText.textContent = 'Wait for RED...';
+            gameText.innerHTML = '⏳ Wait for it...<br><small>Click when it turns RED!</small>';
             gameActive = false;
             
-            // Random delay between 2-5 seconds
-            const delay = 2000 + Math.random() * 3000;
+            // Clear any existing timeout
+            if (timeout) clearTimeout(timeout);
+            
+            // Random delay between 1.5-4 seconds (shorter for better UX)
+            const delay = 1500 + Math.random() * 2500;
+            
+            console.log(`⏰ Red will appear in ${Math.round(delay)}ms`);
             
             timeout = setTimeout(() => {
-                gameArea.className = 'game-area ready';
-                gameText.textContent = 'CLICK NOW!';
-                startTime = performance.now();
-                gameActive = true;
+                // Make sure we're still in the game
+                if (document.querySelector('.game-screen').style.display !== 'none') {
+                    gameArea.className = 'game-area ready';
+                    gameText.innerHTML = '🔴 CLICK NOW!<br><small>As fast as you can!</small>';
+                    startTime = performance.now();
+                    gameActive = true;
+                    console.log('🔴 RED IS SHOWING - CLICK NOW!');
+                    
+                    // Auto-fail after 2 seconds if no click
+                    setTimeout(() => {
+                        if (gameActive) {
+                            gameActive = false;
+                            gameArea.className = 'game-area waiting';
+                            gameText.innerHTML = '😴 Too slow!<br><small>Click to try again</small>';
+                        }
+                    }, 2000);
+                }
             }, delay);
         }
         
         function handleGameClick() {
-            if (!gameActive) {
-                // Clicked too early
-                clearTimeout(timeout);
-                document.getElementById('gameText').textContent = 'Too early! Wait for RED';
-                setTimeout(startReactionTest, 1500);
+            const gameArea = document.getElementById('gameArea');
+            const gameText = document.getElementById('gameText');
+            
+            if (!gameActive && !timeout) {
+                // Game hasn't started yet, start it
+                startReactionTest();
                 return;
             }
             
-            endTime = performance.now();
-            const reactionTime = Math.round(endTime - startTime);
-            showResult(reactionTime);
+            if (!gameActive && timeout) {
+                // Clicked too early
+                clearTimeout(timeout);
+                gameArea.className = 'game-area too-early';
+                gameText.innerHTML = '⚠️ Too early!<br><small>Wait for RED next time</small>';
+                
+                setTimeout(() => {
+                    startReactionTest();
+                }, 1500);
+                return;
+            }
+            
+            if (gameActive) {
+                // Correct click!
+                gameActive = false;
+                endTime = performance.now();
+                const reactionTime = Math.round(endTime - startTime);
+                
+                gameArea.className = 'game-area waiting';
+                gameText.innerHTML = `✅ ${reactionTime}ms!<br><small>Calculating result...</small>`;
+                
+                setTimeout(() => {
+                    showResult(reactionTime);
+                }, 800);
+            }
         }
         
         function showResult(time) {
