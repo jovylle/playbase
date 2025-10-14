@@ -23,7 +23,7 @@ exports.handler = async (event, context) => {
 
   try {
     // 1. Parse and validate the incoming score
-    const { ms } = JSON.parse(event.body);
+    const { ms, playerName, playerId } = JSON.parse(event.body);
     
     if (!ms || typeof ms !== 'number' || ms < 80 || ms > 1000) {
       return {
@@ -38,7 +38,13 @@ exports.handler = async (event, context) => {
     const timestamp = new Date().toISOString();
     const id = Math.random().toString(16).substr(2, 8);
     
-    const newScore = { ms, timestamp, id };
+    const newScore = { 
+      ms, 
+      timestamp, 
+      id,
+      playerName: playerName || 'Anonymous',
+      playerId: playerId || 'unknown'
+    };
 
     // 2. Generate GitHub App JWT
     const payload = {
@@ -166,7 +172,7 @@ exports.handler = async (event, context) => {
       'reaction/latest.json',
       newScore,
       latestFile.sha,
-      `feat(reaction): new ${ms}ms reaction time`
+      `feat(reaction): ${playerName || 'Anonymous'} scored ${ms}ms`
     );
 
     // 6. Update top.json if this score makes the top 10
@@ -184,7 +190,7 @@ exports.handler = async (event, context) => {
       'reaction/top.json',
       topData,
       topFile.sha,
-      `update(reaction): top scores updated with ${ms}ms`
+      `update(reaction): top scores updated with ${playerName || 'Anonymous'} ${ms}ms`
     );
 
     // 7. Append to history.ndjson (optional - would need different approach)

@@ -107,6 +107,12 @@
             <button class="play-btn" onclick="startGame()">🎮 PLAY NOW</button>
         </div>
         
+        <!-- PLAYER INFO -->
+        <div class="player-info" id="playerInfo">
+            <div class="player-name" id="playerNameDisplay">Player</div>
+            <button class="edit-name-btn" onclick="editPlayerName()">✏️ Edit</button>
+        </div>
+        
         <!-- LOADING SCREEN -->
         <div class="loading" id="loading">
             <div class="loading-text">⚡ Loading game assets...</div>
@@ -118,6 +124,91 @@
         // Instant-load functions
         let gameStarted = false;
         let assetsLoaded = false;
+        let playerName = '';
+        let playerId = '';
+        
+        // Generate unique player identity
+        function initPlayerIdentity() {
+            // Get or create player ID (browser fingerprint + timestamp)
+            playerId = localStorage.getItem('playbase_player_id');
+            if (!playerId) {
+                // Create unique ID based on browser characteristics
+                const fingerprint = [
+                    navigator.userAgent,
+                    navigator.language,
+                    screen.width + 'x' + screen.height,
+                    new Date().getTimezoneOffset(),
+                    Date.now()
+                ].join('|');
+                
+                // Generate short hash from fingerprint
+                let hash = 0;
+                for (let i = 0; i < fingerprint.length; i++) {
+                    const char = fingerprint.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash = hash & hash; // Convert to 32-bit integer
+                }
+                playerId = Math.abs(hash).toString(36).substr(0, 8);
+                localStorage.setItem('playbase_player_id', playerId);
+            }
+            
+            // Get or create player name
+            playerName = localStorage.getItem('playbase_player_name');
+            if (!playerName) {
+                // Generate cool default name
+                const adjectives = ['Swift', 'Quick', 'Lightning', 'Rapid', 'Flash', 'Sonic', 'Turbo', 'Hyper'];
+                const nouns = ['Clicker', 'Reactor', 'Player', 'Gamer', 'User', 'Pro', 'Ace', 'Ninja'];
+                const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+                const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
+                playerName = `${randomAdjective}${randomNoun}${Math.floor(Math.random() * 100)}`;
+                localStorage.setItem('playbase_player_name', playerName);
+            }
+            
+            console.log(`🎮 Player: ${playerName} (ID: ${playerId})`);
+        }
+        
+        // Initialize player identity immediately
+        initPlayerIdentity();
+        
+        // Update UI with player name
+        function updatePlayerNameDisplay() {
+            document.getElementById('playerNameDisplay').textContent = playerName;
+        }
+        
+        // Edit player name functionality
+        function editPlayerName() {
+            const nameDisplay = document.getElementById('playerNameDisplay');
+            const currentName = playerName;
+            
+            // Hide edit button while editing
+            document.querySelector('.edit-name-btn').style.display = 'none';
+            
+            nameDisplay.innerHTML = `
+                <input type="text" class="name-input" value="${currentName}" id="nameInput" maxlength="20">
+                <button class="save-name-btn" onclick="savePlayerName()">💾</button>
+            `;
+            
+            document.getElementById('nameInput').focus();
+            document.getElementById('nameInput').select();
+            
+            // Save on Enter key
+            document.getElementById('nameInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') savePlayerName();
+            });
+        }
+        
+        function savePlayerName() {
+            const newName = document.getElementById('nameInput').value.trim();
+            if (newName && newName.length > 0) {
+                playerName = newName;
+                localStorage.setItem('playbase_player_name', playerName);
+            }
+            updatePlayerNameDisplay();
+            document.querySelector('.edit-name-btn').style.display = 'inline';
+        }
+        
+        // Initialize UI when page loads
+        setTimeout(updatePlayerNameDisplay, 100);
         
         function startGame() {
             if (!assetsLoaded) {
@@ -264,7 +355,61 @@
                     background: #7f8c8d;
                 }
                 
-                .leaderboard {
+                .player-info {
+                    position: absolute;
+                    top: 20px;
+                    left: 20px;
+                    background: white;
+                    padding: 12px 16px;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                    border: 1px solid #e0e0e0;
+                    font-size: 14px;
+                    color: #2c3e50;
+                }
+                
+                .player-name {
+                    font-weight: 600;
+                    margin-bottom: 4px;
+                }
+                
+                .edit-name-btn {
+                    background: none;
+                    border: none;
+                    color: #3498db;
+                    cursor: pointer;
+                    font-size: 12px;
+                    padding: 2px 4px;
+                    border-radius: 4px;
+                    transition: background 0.2s;
+                }
+                
+                .edit-name-btn:hover {
+                    background: #f8f9fa;
+                }
+                
+                .name-input {
+                    border: 1px solid #3498db;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    font-size: 14px;
+                    width: 120px;
+                    margin-right: 8px;
+                }
+                
+                .save-name-btn {
+                    background: #3498db;
+                    color: white;
+                    border: none;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    font-size: 12px;
+                    cursor: pointer;
+                }
+                
+                .save-name-btn:hover {
+                    background: #2980b9;
+                }
                     position: absolute;
                     top: 20px;
                     right: 20px;
@@ -285,7 +430,8 @@
                 .score-item {
                     display: flex;
                     justify-content: space-between;
-                    padding: 6px 0;
+                    align-items: center;
+                    padding: 8px 0;
                     border-bottom: 1px solid #f0f0f0;
                     font-family: monospace;
                     font-size: 14px;
@@ -298,6 +444,25 @@
                 
                 .rank {
                     color: #3498db;
+                    font-weight: bold;
+                    min-width: 30px;
+                }
+                
+                .player-name {
+                    flex: 1;
+                    margin: 0 12px;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                    color: #34495e;
+                }
+                
+                .score-time {
+                    color: #e74c3c;
+                    font-weight: bold;
+                    min-width: 60px;
+                    text-align: right;
+                }
                     font-weight: 600;
                 }
             `;
@@ -460,7 +625,11 @@
                 const response = await fetch('/.netlify/functions/save-reaction-score', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ms: time })
+                    body: JSON.stringify({ 
+                        ms: time,
+                        playerName: playerName,
+                        playerId: playerId
+                    })
                 });
                 
                 const result = await response.json();
@@ -483,7 +652,8 @@
                 const leaderboardHTML = data.top.slice(0, 5).map((score, index) => `
                     <div class="score-item">
                         <span class="rank">#${index + 1}</span>
-                        <span>${score.ms}ms</span>
+                        <span class="player-name">${score.playerName || 'Anonymous'}</span>
+                        <span class="score-time">${score.ms}ms</span>
                     </div>
                 `).join('');
                 
