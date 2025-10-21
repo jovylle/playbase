@@ -80,10 +80,184 @@
         .subtitle {
             font-size: clamp(14px, 4vw, 18px);
             color: #757575;
-            margin-bottom: 32px;
+            margin-bottom: 24px;
             text-align: center;
             font-weight: 400;
             font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        .player-info {
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        
+        .current-player {
+            font-size: 16px;
+            color: #424242;
+            margin-bottom: 12px;
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        .change-name-btn {
+            background: #757575;
+            border: none;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        .change-name-btn:hover {
+            background: #616161;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        .name-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .name-modal-content {
+            background: #ffffff;
+            padding: 24px;
+            border-radius: 4px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            max-width: 400px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .name-modal h3 {
+            margin-bottom: 16px;
+            color: #212121;
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        .name-modal p {
+            margin-bottom: 16px;
+            color: #757575;
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        .word-selection {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .word-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .word-group h4 {
+            margin: 0;
+            font-size: 16px;
+            color: #424242;
+            font-weight: 500;
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        .word-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 6px;
+        }
+        
+        .word-option {
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            padding: 10px 6px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 500;
+            color: #424242;
+            transition: all 0.2s ease;
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        .word-option:hover {
+            background: #e3f2fd;
+            border-color: #1976d2;
+        }
+        
+        .word-option.selected {
+            background: #1976d2;
+            color: white;
+            border-color: #1976d2;
+        }
+        
+        .name-preview {
+            background: #f5f5f5;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .name-preview p {
+            margin: 0;
+            font-size: 16px;
+            color: #424242;
+            font-weight: 500;
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        .name-preview span {
+            color: #1976d2;
+            font-weight: 600;
+        }
+        
+        .confirm-btn {
+            background: #1976d2 !important;
+        }
+        
+        .confirm-btn:hover {
+            background: #1565c0 !important;
+        }
+        
+        .confirm-btn:disabled {
+            background: #bdbdbd !important;
+            cursor: not-allowed;
+        }
+        
+        .modal-buttons {
+            text-align: center;
+        }
+        
+        .modal-btn {
+            background: #757575;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        .modal-btn:hover {
+            background: #616161;
         }
         
         /* Game screen styles - available immediately */
@@ -328,6 +502,13 @@
         <div class="main-screen">
             <h1 class="title">⚡ REACTION TESTER</h1>
             <p class="subtitle">How fast are your reflexes?</p>
+            
+            <!-- Player Name Display -->
+            <div class="player-info">
+                <p class="current-player">Playing as: <span id="currentPlayerName">Loading...</span></p>
+                <button class="change-name-btn" onclick="showNameChanger()">✏️ Change Name</button>
+            </div>
+            
             <button class="play-btn" onclick="startGame()">🎮 PLAY NOW</button>
             
             <!-- Home Leaderboard -->
@@ -371,6 +552,39 @@
                 <div class="score-item">
                     <span class="rank">#1</span>
                     <span>Loading...</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Name Changer Modal -->
+        <div class="name-modal" id="nameModal">
+            <div class="name-modal-content">
+                <h3>🎮 Create Your Name</h3>
+                <p>Choose an adjective and a noun:</p>
+                
+                <div class="word-selection">
+                    <div class="word-group">
+                        <h4>Adjective:</h4>
+                        <div class="word-options" id="adjectiveOptions">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    
+                    <div class="word-group">
+                        <h4>Noun:</h4>
+                        <div class="word-options" id="nounOptions">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="name-preview">
+                    <p>Your name: <span id="namePreview">Select words above</span></p>
+                </div>
+                
+                <div class="modal-buttons">
+                    <button class="modal-btn confirm-btn" onclick="confirmName()" id="confirmBtn" disabled>Confirm Name</button>
+                    <button class="modal-btn cancel-btn" onclick="hideNameChanger()">Cancel</button>
                 </div>
             </div>
         </div>
@@ -467,6 +681,107 @@
         
         // Load home leaderboard on page load
         loadHomeLeaderboard();
+        
+        // Update current player name display
+        updatePlayerNameDisplay();
+        
+        // Predefined word combinations to prevent spam
+        const adjectives = [
+            'Swift', 'Quick', 'Lightning', 'Rapid', 'Flash', 'Sonic', 'Turbo', 'Hyper',
+            'Speed', 'Fast', 'Super', 'Ultra', 'Mega', 'Pro', 'Elite', 'Master',
+            'Sharp', 'Precise', 'Accurate', 'Deadly', 'Fierce', 'Bold', 'Brave', 'Cool'
+        ];
+        
+        const nouns = [
+            'Clicker', 'Reactor', 'Player', 'Gamer', 'User', 'Pro', 'Ace', 'Ninja',
+            'Hunter', 'Striker', 'Runner', 'Jumper', 'Dancer', 'Fighter', 'Warrior', 'Hero',
+            'Wizard', 'Mage', 'Knight', 'Ranger', 'Rogue', 'Paladin', 'Monk', 'Bard'
+        ];
+        
+        function updatePlayerNameDisplay() {
+            document.getElementById('currentPlayerName').textContent = playerName;
+        }
+        
+        let selectedAdjective = '';
+        let selectedNoun = '';
+        
+        function showNameChanger() {
+            const modal = document.getElementById('nameModal');
+            const adjectiveContainer = document.getElementById('adjectiveOptions');
+            const nounContainer = document.getElementById('nounOptions');
+            
+            // Reset selections
+            selectedAdjective = '';
+            selectedNoun = '';
+            updateNamePreview();
+            
+            // Generate adjective options
+            const adjectiveHTML = adjectives.map(adj => 
+                `<div class="word-option" onclick="selectAdjective('${adj}')">${adj}</div>`
+            ).join('');
+            
+            // Generate noun options
+            const nounHTML = nouns.map(noun => 
+                `<div class="word-option" onclick="selectNoun('${noun}')">${noun}</div>`
+            ).join('');
+            
+            adjectiveContainer.innerHTML = adjectiveHTML;
+            nounContainer.innerHTML = nounHTML;
+            modal.style.display = 'flex';
+        }
+        
+        function hideNameChanger() {
+            document.getElementById('nameModal').style.display = 'none';
+        }
+        
+        function selectAdjective(adjective) {
+            selectedAdjective = adjective;
+            
+            // Update visual selection
+            document.querySelectorAll('#adjectiveOptions .word-option').forEach(el => {
+                el.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
+            
+            updateNamePreview();
+        }
+        
+        function selectNoun(noun) {
+            selectedNoun = noun;
+            
+            // Update visual selection
+            document.querySelectorAll('#nounOptions .word-option').forEach(el => {
+                el.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
+            
+            updateNamePreview();
+        }
+        
+        function updateNamePreview() {
+            const preview = document.getElementById('namePreview');
+            const confirmBtn = document.getElementById('confirmBtn');
+            
+            if (selectedAdjective && selectedNoun) {
+                const fullName = selectedAdjective + selectedNoun;
+                preview.textContent = fullName;
+                confirmBtn.disabled = false;
+            } else {
+                preview.textContent = 'Select words above';
+                confirmBtn.disabled = true;
+            }
+        }
+        
+        function confirmName() {
+            if (selectedAdjective && selectedNoun) {
+                const newName = selectedAdjective + selectedNoun;
+                playerName = newName;
+                localStorage.setItem('playbase_player_name', playerName);
+                updatePlayerNameDisplay();
+                hideNameChanger();
+                console.log(`🎮 Player name changed to: ${playerName}`);
+            }
+        }
         
         function startGame() {
             // Skip the loading simulation for now - go straight to game
