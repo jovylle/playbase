@@ -1,6 +1,20 @@
 {
   "top": [
     {
+      "ms": 369,
+      "timestamp": "2025-10-21T15:47:34.990Z",
+      "id": "8717ebc2",
+      "playerName": "FlashPro5",
+      "playerId": "ucjf5c"
+    },
+    {
+      "ms": 370,
+      "timestamp": "2025-10-21T15:46:36.533Z",
+      "id": "9024ef01",
+      "playerName": "FlashPro5",
+      "playerId": "ucjf5c"
+    },
+    {
       "ms": 380,
       "timestamp": "2025-01-15T10:30:00.000Z",
       "id": "a1b2c3d4",
@@ -8,11 +22,25 @@
       "playerId": "sd_001"
     },
     {
+      "ms": 408,
+      "timestamp": "2025-10-21T15:43:41.213Z",
+      "id": "93977ed0",
+      "playerName": "FlashPro5",
+      "playerId": "ucjf5c"
+    },
+    {
       "ms": 420,
       "timestamp": "2025-01-15T09:45:00.000Z",
       "id": "e5f6g7h8",
       "playerName": "QuickClick",
       "playerId": "qc_002"
+    },
+    {
+      "ms": 423,
+      "timestamp": "2025-01-15T02:30:00.000Z",
+      "id": "g3h4i5j6",
+      "playerName": "HyperReact",
+      "playerId": "hr_009"
     },
     {
       "ms": 450,
@@ -41,42 +69,7 @@
       "id": "u1v2w3x4",
       "playerName": "SwiftClick",
       "playerId": "sc_006"
-    },
-    {
-      "ms": 570,
-      "timestamp": "2025-01-15T04:20:00.000Z",
-      "id": "y5z6a7b8",
-      "playerName": "RapidFire",
-      "playerId": "rf_007"
-    },
-    {
-      "ms": 600,
-      "timestamp": "2025-01-15T03:15:00.000Z",
-      "id": "c9d0e1f2",
-      "playerName": "TurboClick",
-      "playerId": "tc_008"
-    },
-    {
-      "ms": 408,
-      "timestamp": "2025-10-21T15:43:41.213Z",
-      "id": "93977ed0",
-      "playerName": "FlashPro5",
-      "playerId": "ucjf5c"
-    },
-    {
-      "ms": 423,
-      "timestamp": "2025-01-15T02:30:00.000Z",
-      "id": "g3h4i5j6",
-      "playerName": "HyperReact",
-      "playerId": "hr_009"
-    },
-    {
-      "ms": 630,
-      "timestamp": "2025-01-15T01:45:00.000Z",
-      "id": "k7l8m9n0",
-      "playerName": "FlashClick",
-      "playerId": "fc_010"
     }
   ],
-  "last_updated": "2025-10-21T15:43:41.213Z"
+  "last_updated": "2025-10-21T15:47:34.990Z"
 }
