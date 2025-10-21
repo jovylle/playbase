@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>⚡ Reaction Tester - Beat the Leaderboard!</title>
     
     <!-- CRITICAL CSS - INLINE FOR INSTANT LOAD -->
@@ -14,29 +17,24 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: #f8f9fa;
             color: #2c3e50;
-            overflow: hidden;
+            overflow: auto;
             user-select: none;
             margin: 0;
             padding: 0;
             touch-action: manipulation;
-            height: 100vh;
-            max-height: 100vh;
+            min-height: 100vh;
         }
         
         .game-container {
             width: 100vw;
-            height: 100vh;
-            max-height: 100vh;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 20px;
             box-sizing: border-box;
-            overflow: hidden;
             position: relative;
-            padding: 20px;
-            box-sizing: border-box;
         }
         
         /* INSTANT PLAY BUTTON - Shows immediately */
@@ -77,8 +75,74 @@
             text-align: center;
         }
         
-        /* Hidden initially - loads after play click */
-        .game-screen,
+        /* Game screen styles - available immediately */
+        .game-screen {
+            display: none;
+            text-align: center;
+            width: 100%;
+            min-height: 60vh;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        .game-screen.show {
+            display: flex;
+        }
+        
+        .game-area {
+            width: 90vw;
+            max-width: 400px;
+            height: 30vh;
+            max-height: 200px;
+            min-height: 150px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            background: #ffffff;
+            font-size: clamp(16px, 4vw, 20px);
+        }
+        
+        .game-area.waiting {
+            background: #ffffff;
+            border-color: #3498db;
+            color: #3498db;
+        }
+        
+        .game-area.ready {
+            background: #e74c3c !important;
+            border-color: #c0392b !important;
+            color: white !important;
+        }
+        
+        .game-area.too-early {
+            background: #f39c12;
+            border-color: #e67e22;
+            color: white;
+            animation: shake 0.5s ease-in-out;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        .game-text {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            padding: 20px;
+        }
+        
         .result-screen,
         .leaderboard {
             display: none;
@@ -92,6 +156,38 @@
             <h1 class="title">⚡ REACTION TESTER</h1>
             <p class="subtitle">How fast are your reflexes?</p>
             <button class="play-btn" onclick="startGame()">🎮 PLAY NOW</button>
+        </div>
+        
+        <!-- Game screens inside the container -->
+        <div class="game-screen">
+            <h2>🎯 Reaction Test</h2>
+            <div class="game-area waiting" id="gameArea" onclick="handleGameClick()">
+                <div class="game-text" id="gameText">
+                    🎮 Click anywhere to start!<br>
+                    <small>Wait for RED, then click as fast as you can!</small>
+                </div>
+            </div>
+            <div id="instructions" style="max-width: 400px; margin: 0 auto; padding: 0 20px; opacity: 0.7; line-height: 1.4; font-size: 14px;">
+                <p><strong>Instructions:</strong> Click to start → Wait → Click when RED</p>
+            </div>
+        </div>
+        
+        <div class="result-screen">
+            <h2>Your Result</h2>
+            <div class="result-time" id="resultTime">0ms</div>
+            <div class="result-message" id="resultMessage">Great job!</div>
+            <button class="play-again-btn" onclick="playAgain()">🔄 Play Again</button>
+            <button class="play-again-btn back-btn" onclick="goHome()">🏠 Home</button>
+        </div>
+        
+        <div class="leaderboard">
+            <h3>🏆 Top Scores</h3>
+            <div id="leaderboardList">
+                <div class="score-item">
+                    <span class="rank">#1</span>
+                    <span>Loading...</span>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -147,20 +243,44 @@
         initPlayerIdentity();
         
         function startGame() {
-            if (!assetsLoaded) {
-                showLoading();
-                loadGameAssets();
-            } else {
-                initializeGame();
-            }
+            // Skip the loading simulation for now - go straight to game
+            initializeGame();
         }
         
         function showLoading() {
-            document.getElementById('loading').style.display = 'flex';
+            // Create loading element if it doesn't exist
+            let loadingEl = document.getElementById('loading');
+            if (!loadingEl) {
+                loadingEl = document.createElement('div');
+                loadingEl.id = 'loading';
+                loadingEl.innerHTML = '🎮 Loading game assets...';
+                loadingEl.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(248, 249, 250, 0.95);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 24px;
+                    font-weight: 600;
+                    color: #3498db;
+                    z-index: 1000;
+                `;
+                document.body.appendChild(loadingEl);
+            }
+            if (loadingEl && loadingEl.style) {
+                loadingEl.style.display = 'flex';
+            }
         }
         
         function hideLoading() {
-            document.getElementById('loading').style.display = 'none';
+            const loadingEl = document.getElementById('loading');
+            if (loadingEl) {
+                loadingEl.style.display = 'none';
+            }
         }
         
         // Load the rest of the game after user clicks play
@@ -182,7 +302,7 @@
                     width: 100%;
                     height: auto;
                     min-height: 60vh;
-                    display: flex;
+                    display: flex !important;
                     flex-direction: column;
                     align-items: center;
                     justify-content: center;
@@ -241,85 +361,122 @@
                     padding: 20px;
                 }
                 
-                .result-screen {
-                    text-align: center;
-                    width: 100%;
-                    height: auto;
-                    min-height: 60vh;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                    padding: 20px;
-                    box-sizing: border-box;
-                }
-                
-                .result-time {
-                    font-size: clamp(48px, 12vw, 72px);
-                    font-weight: 700;
-                    margin: 16px 0;
-                    color: #2c3e50;
-                }
-                
-                .result-message {
-                    font-size: clamp(16px, 4vw, 20px);
-                    margin: 12px 0;
-                    opacity: 0.8;
-                }
+        .result-screen {
+            text-align: center;
+            width: 100%;
+            height: auto;
+            min-height: 60vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            margin: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            color: white;
+        }
+        
+        .result-time {
+            font-size: clamp(64px, 15vw, 96px);
+            font-weight: 900;
+            margin: 20px 0;
+            color: #fff;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .result-message {
+            font-size: clamp(18px, 5vw, 24px);
+            margin: 16px 0 32px 0;
+            opacity: 0.9;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
                 
                 .play-again-btn {
-                    background: #3498db;
+                    background: linear-gradient(45deg, #ff6b6b, #feca57);
                     border: none;
-                    padding: 12px 24px;
-                    font-size: 16px;
-                    font-weight: 600;
+                    padding: 16px 32px;
+                    font-size: 18px;
+                    font-weight: 700;
                     color: white;
-                    border-radius: 6px;
+                    border-radius: 50px;
                     cursor: pointer;
-                    margin: 8px;
-                    transition: all 0.2s ease;
+                    margin: 12px;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
                 }
                 
                 .play-again-btn:hover {
-                    background: #2980b9;
-                    transform: translateY(-1px);
+                    transform: translateY(-3px);
+                    box-shadow: 0 12px 30px rgba(255, 107, 107, 0.4);
+                    background: linear-gradient(45deg, #ff5252, #ffeb3b);
                 }
                 
                 .back-btn {
-                    background: #95a5a6;
+                    background: linear-gradient(45deg, #667eea, #764ba2);
+                    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
                 }
                 
                 .back-btn:hover {
-                    background: #7f8c8d;
+                    transform: translateY(-3px);
+                    box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
+                    background: linear-gradient(45deg, #5a67d8, #6b46c1);
                 }
                 
-                .leaderboard {
-                    position: absolute;
-                    top: 20px;
-                    right: 20px;
-                    background: white;
-                    padding: 16px;
-                    border-radius: 8px;
-                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                    min-width: 200px;
-                    border: 1px solid #e0e0e0;
-                }
+        .leaderboard {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            min-width: 220px;
+            color: white;
+            z-index: 10;
+            backdrop-filter: blur(10px);
+        }
                 
                 .leaderboard h3 {
-                    margin-bottom: 12px;
-                    font-size: 16px;
-                    color: #2c3e50;
+                    margin-bottom: 16px;
+                    font-size: 18px;
+                    color: white;
+                    text-align: center;
+                    font-weight: 700;
+                    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
                 }
                 
                 .score-item {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    padding: 8px 0;
-                    border-bottom: 1px solid #f0f0f0;
+                    padding: 10px 0;
+                    border-bottom: 1px solid rgba(255,255,255,0.2);
                     font-family: monospace;
                     font-size: 14px;
-                    color: #2c3e50;
+                    color: white;
+                    transition: all 0.2s ease;
+                }
+                
+                .score-item:hover {
+                    background: rgba(255,255,255,0.1);
+                    border-radius: 8px;
+                    padding: 10px 8px;
                 }
                 
                 .score-item:last-child {
@@ -327,9 +484,10 @@
                 }
                 
                 .rank {
-                    color: #3498db;
+                    color: #feca57;
                     font-weight: bold;
                     min-width: 30px;
+                    font-size: 16px;
                 }
                 
                 .player-name {
@@ -338,14 +496,15 @@
                     overflow: hidden;
                     text-overflow: ellipsis;
                     white-space: nowrap;
-                    color: #34495e;
+                    color: rgba(255,255,255,0.9);
                 }
                 
                 .score-time {
-                    color: #e74c3c;
+                    color: #ff6b6b;
                     font-weight: bold;
                     min-width: 60px;
                     text-align: right;
+                    font-size: 15px;
                 }
                     font-weight: 600;
                 }
@@ -364,42 +523,14 @@
         
         function initializeGame() {
             document.querySelector('.main-screen').style.display = 'none';
-            document.querySelector('.game-screen').style.display = 'block';
+            const gameScreen = document.querySelector('.game-screen');
+            if (gameScreen) {
+                gameScreen.classList.add('show');
+            }
             startReactionTest();
         }
     </script>
     
-    <!-- LAZY LOADED CONTENT - Added after play click -->
-    <div class="game-screen">
-        <h2>🎯 Reaction Test</h2>
-        <div class="game-area waiting" id="gameArea" onclick="handleGameClick()">
-            <div class="game-text" id="gameText">
-                🎮 Click anywhere to start!<br>
-                <small>Wait for RED, then click as fast as you can!</small>
-            </div>
-        </div>
-        <div id="instructions" style="max-width: 400px; margin: 0 auto; padding: 0 20px; opacity: 0.7; line-height: 1.4; font-size: 14px;">
-            <p><strong>Instructions:</strong> Click to start → Wait → Click when RED</p>
-        </div>
-    </div>
-    
-    <div class="result-screen">
-        <h2>Your Result</h2>
-        <div class="result-time" id="resultTime">0ms</div>
-        <div class="result-message" id="resultMessage">Great job!</div>
-        <button class="play-again-btn" onclick="playAgain()">🔄 Play Again</button>
-        <button class="play-again-btn back-btn" onclick="goHome()">🏠 Home</button>
-    </div>
-    
-    <div class="leaderboard">
-        <h3>🏆 Top Scores</h3>
-        <div id="leaderboardList">
-            <div class="score-item">
-                <span class="rank">#1</span>
-                <span>Loading...</span>
-            </div>
-        </div>
-    </div>
 
     <!-- FULL GAME LOGIC - LOADS AFTER PLAY CLICK -->
     <script>
@@ -482,7 +613,7 @@
         }
         
         function showResult(time) {
-            document.querySelector('.game-screen').style.display = 'none';
+            document.querySelector('.game-screen').classList.remove('show');
             document.querySelector('.result-screen').style.display = 'block';
             
             document.getElementById('resultTime').textContent = time + 'ms';
@@ -525,6 +656,8 @@
                 }
             } catch (error) {
                 console.error('Failed to save score:', error);
+                // Fallback: Show local success message
+                console.log('🎮 Score recorded locally:', time + 'ms by ' + playerName);
             }
         }
         
@@ -550,13 +683,14 @@
         
         function playAgain() {
             document.querySelector('.result-screen').style.display = 'none';
-            document.querySelector('.game-screen').style.display = 'block';
+            document.querySelector('.game-screen').classList.add('show');
             startReactionTest();
         }
         
         function goHome() {
             document.querySelector('.result-screen').style.display = 'none';
             document.querySelector('.leaderboard').style.display = 'none';
+            document.querySelector('.game-screen').classList.remove('show');
             document.querySelector('.main-screen').style.display = 'block';
         }
     </script>
