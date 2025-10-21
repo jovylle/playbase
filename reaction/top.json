@@ -1,6 +1,13 @@
 {
   "top": [
     {
+      "ms": 339,
+      "timestamp": "2025-10-21T17:13:22.043Z",
+      "id": "9e591c34",
+      "playerName": "BraveBard",
+      "playerId": "ucjf5c"
+    },
+    {
       "ms": 363,
       "timestamp": "2025-10-21T15:50:08.912Z",
       "id": "b1a25724",
@@ -62,14 +69,7 @@
       "id": "g3h4i5j6",
       "playerName": "HyperReact",
       "playerId": "hr_009"
-    },
-    {
-      "ms": 450,
-      "timestamp": "2025-01-15T08:20:00.000Z",
-      "id": "i9j0k1l2",
-      "playerName": "FastFinger",
-      "playerId": "ff_003"
     }
   ],
-  "last_updated": "2025-10-21T16:20:08.558Z"
+  "last_updated": "2025-10-21T17:13:22.043Z"
 }
