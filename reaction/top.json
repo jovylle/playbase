@@ -57,19 +57,19 @@
       "playerId": "tc_008"
     },
     {
+      "ms": 408,
+      "timestamp": "2025-10-21T15:43:41.213Z",
+      "id": "93977ed0",
+      "playerName": "FlashPro5",
+      "playerId": "ucjf5c"
+    },
+    {
       "ms": 423,
       "timestamp": "2025-01-15T02:30:00.000Z",
       "id": "g3h4i5j6",
       "playerName": "HyperReact",
       "playerId": "hr_009"
-    },
-    {
-      "ms": 474,
-      "timestamp": "2025-10-21T15:20:41.272Z",
-      "id": "215c6c51",
-      "playerName": "FlashPro5",
-      "playerId": "ucjf5c"
     }
   ],
-  "last_updated": "2025-10-21T15:38:28.684Z"
+  "last_updated": "2025-10-21T15:43:41.213Z"
 }
