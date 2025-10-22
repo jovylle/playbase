@@ -1,6 +1,14 @@
 {
   "top": [
     {
+      "ms": 339,
+      "timestamp": "2025-10-21T17:13:22.043Z",
+      "id": "9e591c34",
+      "playerName": "BraveBard",
+      "playerId": "ucjf5c",
+      "season": 1
+    },
+    {
       "ms": 363,
       "timestamp": "2025-10-21T15:50:08.912Z",
       "id": "b1a25724",
@@ -21,6 +29,14 @@
       "timestamp": "2025-10-21T15:46:36.533Z",
       "id": "9024ef01",
       "playerName": "FlashPro5",
+      "playerId": "ucjf5c",
+      "season": 1
+    },
+    {
+      "ms": 378,
+      "timestamp": "2025-10-21T16:20:08.558Z",
+      "id": "45549e37",
+      "playerName": "SpeedRunner",
       "playerId": "ucjf5c",
       "season": 1
     },
@@ -63,25 +79,9 @@
       "playerName": "HyperReact",
       "playerId": "hr_009",
       "season": 1
-    },
-    {
-      "ms": 450,
-      "timestamp": "2025-01-15T08:20:00.000Z",
-      "id": "i9j0k1l2",
-      "playerName": "FastFinger",
-      "playerId": "ff_003",
-      "season": 1
-    },
-    {
-      "ms": 480,
-      "timestamp": "2025-01-15T07:15:00.000Z",
-      "id": "m3n4o5p6",
-      "playerName": "ReactionPro",
-      "playerId": "rp_004",
-      "season": 1
     }
   ],
-  "last_updated": "2025-10-21T15:55:53.076Z",
+  "last_updated": "2025-10-22T05:33:01.848Z",
   "season": 1,
   "season_start": "2025-01-15T00:00:00.000Z"
 }
