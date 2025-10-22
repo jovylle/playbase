@@ -434,12 +434,53 @@
             box-shadow: 0 1px 2px rgba(0,0,0,0.2);
         }
         
+        .game-info {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1), 0 4px 16px rgba(0,0,0,0.12);
+            margin-top: 24px;
+            max-width: 500px;
+            width: 100%;
+            color: #212121;
+            text-align: left;
+        }
+        
+        .game-info h4 {
+            color: #1976d2;
+            margin: 16px 0 8px 0;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .game-info h4:first-child {
+            margin-top: 0;
+        }
+        
+        .game-info ul {
+            margin: 8px 0 16px 0;
+            padding-left: 20px;
+        }
+        
+        .game-info li {
+            margin: 4px 0;
+            color: #424242;
+            font-size: 14px;
+        }
+        
+        .game-info p {
+            margin: 8px 0 16px 0;
+            color: #424242;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
         .home-leaderboard {
             background: #ffffff;
             padding: 20px;
             border-radius: 4px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1), 0 4px 16px rgba(0,0,0,0.12);
-            margin-top: 32px;
+            margin-top: 24px;
             max-width: 400px;
             width: 100%;
             color: #212121;
@@ -570,6 +611,30 @@
             </div>
             
             <button class="play-btn" onclick="startGame()">🎮 PLAY NOW</button>
+            
+            <!-- Game Info -->
+            <div class="game-info">
+                <h4>🎯 How to Play:</h4>
+                <ul>
+                    <li>Click "PLAY NOW" to start</li>
+                    <li>Wait for the screen to turn <span style="color: #d32f2f; font-weight: bold;">RED</span></li>
+                    <li>Click as fast as you can!</li>
+                    <li>Don't click too early or you'll fail</li>
+                </ul>
+                
+                <h4>📊 Scoring:</h4>
+                <ul>
+                    <li>< 200ms: ⚡ Excellent!</li>
+                    <li>200-300ms: 👍 Good</li>
+                    <li>300-400ms: 😊 Average</li>
+                    <li>> 400ms: 🐌 Keep practicing!</li>
+                </ul>
+                
+                <h4>🌱 Season Info:</h4>
+                <p>• Seasons last 3 months (90 days)<br>
+                • Leaderboards reset every season<br>
+                • Your best scores are saved forever!</p>
+            </div>
             
             <!-- Home Leaderboard -->
             <div class="home-leaderboard">
