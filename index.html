@@ -1327,12 +1327,17 @@
                     console.log('✅ Score saved!', result.message);
                     if (result.isNewRecord) {
                         document.getElementById('resultMessage').textContent = '🏆 NEW RECORD! ' + result.message;
+                    } else if (result.message && result.message.includes('Ranked #')) {
+                        // Update message with ranking information
+                        document.getElementById('resultMessage').textContent = '🎯 ' + result.message;
                     }
                 }
             } catch (error) {
                 console.error('Failed to save score:', error);
                 // Fallback: Show local success message
                 console.log('🎮 Score recorded locally:', time + 'ms by ' + playerName);
+                // Update message to show it was recorded locally
+                document.getElementById('resultMessage').textContent = '🎮 Score recorded locally!';
             }
         }
         
