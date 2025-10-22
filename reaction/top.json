@@ -17,6 +17,14 @@
       "season": 4
     },
     {
+      "ms": 361,
+      "timestamp": "2025-10-22T07:31:56.534Z",
+      "id": "465b39c1",
+      "playerName": "BraveMonk222",
+      "playerId": "bq7xwg",
+      "season": 4
+    },
+    {
       "ms": 363,
       "timestamp": "2025-10-21T15:50:08.912Z",
       "id": "b1a25724",
@@ -71,15 +79,7 @@
       "playerName": "FlashPro5",
       "playerId": "ucjf5c",
       "season": 1
-    },
-    {
-      "ms": 420,
-      "timestamp": "2025-01-15T09:45:00.000Z",
-      "id": "e5f6g7h8",
-      "playerName": "QuickClick",
-      "playerId": "qc_002",
-      "season": 1
     }
   ],
-  "last_updated": "2025-10-22T06:13:04.811Z"
+  "last_updated": "2025-10-22T07:31:56.534Z"
 }
