@@ -9,6 +9,14 @@
       "season": 1
     },
     {
+      "ms": 344,
+      "timestamp": "2025-10-22T06:13:04.811Z",
+      "id": "329f124e",
+      "playerName": "BraveMonk222",
+      "playerId": "bq7xwg",
+      "season": 4
+    },
+    {
       "ms": 363,
       "timestamp": "2025-10-21T15:50:08.912Z",
       "id": "b1a25724",
@@ -71,17 +79,7 @@
       "playerName": "QuickClick",
       "playerId": "qc_002",
       "season": 1
-    },
-    {
-      "ms": 423,
-      "timestamp": "2025-01-15T02:30:00.000Z",
-      "id": "g3h4i5j6",
-      "playerName": "HyperReact",
-      "playerId": "hr_009",
-      "season": 1
     }
   ],
-  "last_updated": "2025-10-22T05:33:01.848Z",
-  "season": 1,
-  "season_start": "2025-01-15T00:00:00.000Z"
+  "last_updated": "2025-10-22T06:13:04.811Z"
 }
