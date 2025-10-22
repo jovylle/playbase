@@ -53,7 +53,7 @@ Create `netlify/functions/save-reaction-score.js`:
 
 Your function will be available at:
 ```
-https://your-site.netlify.app/.netlify/functions/save-reaction-score
+https://fast.jovylle.com/.netlify/functions/save-reaction-score
 ```
 
 ## ▲ Vercel Deployment
@@ -102,7 +102,7 @@ export default async function handler(req, res) {
 
 ```bash
 # Test with curl
-curl -X POST https://your-site.netlify.app/.netlify/functions/save-reaction-score \
+curl -X POST https://fast.jovylle.com/.netlify/functions/save-reaction-score \
   -H "Content-Type: application/json" \
   -d '{"ms": 200}'
 

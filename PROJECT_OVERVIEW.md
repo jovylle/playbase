@@ -138,7 +138,7 @@ GITHUB_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n..."
 - **Frontend**: Netlify static hosting
 - **Backend**: Netlify Functions (serverless)
 - **Database**: GitHub repository (jovylle/playbase)
-- **Domain**: https://playbase.netlify.app
+- **Domain**: https://fast.jovylle.com
 
 ## 🎮 Game Flow
 

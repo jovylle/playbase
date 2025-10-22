@@ -38,12 +38,18 @@ exports.handler = async (event, context) => {
     const timestamp = new Date().toISOString();
     const id = Math.random().toString(16).substr(2, 8);
     
+    // Calculate current season
+    const seasonStart = new Date('2025-01-15T00:00:00Z');
+    const daysSinceStart = Math.floor((new Date() - seasonStart) / (1000 * 60 * 60 * 24));
+    const currentSeason = Math.floor(daysSinceStart / 90) + 1; // 90 days (3 months) per season
+    
     const newScore = { 
       ms, 
       timestamp, 
       id,
       playerName: playerName || 'Anonymous',
-      playerId: playerId || 'unknown'
+      playerId: playerId || 'unknown',
+      season: currentSeason
     };
 
     // 2. Generate GitHub App JWT

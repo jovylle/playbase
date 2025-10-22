@@ -9,3 +9,7 @@
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
+
+# Custom domain configuration
+[context.production]
+  command = "echo 'Deploying to fast.jovylle.com'"

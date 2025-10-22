@@ -239,6 +239,34 @@
             cursor: not-allowed;
         }
         
+        .number-input {
+            display: flex;
+            justify-content: center;
+        }
+        
+        .number-input input {
+            width: 120px;
+            padding: 10px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 16px;
+            text-align: center;
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #ffffff;
+            color: #424242;
+            transition: all 0.2s ease;
+        }
+        
+        .number-input input:focus {
+            outline: none;
+            border-color: #1976d2;
+            box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+        }
+        
+        .number-input input::placeholder {
+            color: #bdbdbd;
+        }
+        
         .modal-buttons {
             text-align: center;
         }
@@ -449,6 +477,38 @@
             font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
         }
         
+        .season-info {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            border: 1px solid #e1f5fe;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .season-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #1976d2;
+            margin-bottom: 4px;
+        }
+        
+        .season-details {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        
+        .reset-countdown {
+            font-size: 13px;
+            color: #ff6b35;
+            font-weight: 500;
+            background: rgba(255, 107, 53, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        
         .score-item {
             display: flex;
             justify-content: space-between;
@@ -547,6 +607,11 @@
         </div>
         
         <div class="leaderboard">
+            <div class="season-info">
+                <div class="season-title">🌱 Season 1</div>
+                <div class="season-details">Started: Jan 15, 2025</div>
+                <div class="reset-countdown" id="resetCountdown">Resets in 45 days</div>
+            </div>
             <h3>🏆 Top Scores</h3>
             <div id="leaderboardList">
                 <div class="score-item">
@@ -574,6 +639,13 @@
                         <h4>Noun:</h4>
                         <div class="word-options" id="nounOptions">
                             <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    
+                    <div class="word-group">
+                        <h4>Number (1-999):</h4>
+                        <div class="number-input">
+                            <input type="number" id="numberInput" min="1" max="999" placeholder="123" oninput="selectNumber(this.value)">
                         </div>
                     </div>
                 </div>
@@ -685,6 +757,9 @@
         // Update current player name display
         updatePlayerNameDisplay();
         
+        // Update season display
+        updateSeasonDisplay();
+        
         // Predefined word combinations to prevent spam
         const adjectives = [
             'Swift', 'Quick', 'Lightning', 'Rapid', 'Flash', 'Sonic', 'Turbo', 'Hyper',
@@ -704,6 +779,53 @@
         
         let selectedAdjective = '';
         let selectedNoun = '';
+        let selectedNumber = '';
+        
+        // Season tracking
+        const SEASON_DURATION_DAYS = 90; // 90 days (3 months) per season
+        const SEASON_START_DATE = new Date('2025-01-15T00:00:00Z'); // Season 1 start
+        
+        function getCurrentSeason() {
+            const now = new Date();
+            const daysSinceStart = Math.floor((now - SEASON_START_DATE) / (1000 * 60 * 60 * 24));
+            const currentSeason = Math.floor(daysSinceStart / SEASON_DURATION_DAYS) + 1;
+            const seasonStart = new Date(SEASON_START_DATE);
+            seasonStart.setDate(seasonStart.getDate() + (currentSeason - 1) * SEASON_DURATION_DAYS);
+            const seasonEnd = new Date(seasonStart);
+            seasonEnd.setDate(seasonEnd.getDate() + SEASON_DURATION_DAYS);
+            
+            return {
+                number: currentSeason,
+                start: seasonStart,
+                end: seasonEnd,
+                daysRemaining: Math.max(0, Math.ceil((seasonEnd - now) / (1000 * 60 * 60 * 24)))
+            };
+        }
+        
+        function updateSeasonDisplay() {
+            const season = getCurrentSeason();
+            const seasonTitle = document.querySelector('.season-title');
+            const seasonDetails = document.querySelector('.season-details');
+            const resetCountdown = document.getElementById('resetCountdown');
+            
+            if (seasonTitle) {
+                seasonTitle.textContent = `🌱 Season ${season.number}`;
+            }
+            
+            if (seasonDetails) {
+                seasonDetails.textContent = `Started: ${season.start.toLocaleDateString()}`;
+            }
+            
+            if (resetCountdown) {
+                if (season.daysRemaining > 0) {
+                    resetCountdown.textContent = `Resets in ${season.daysRemaining} days`;
+                } else {
+                    resetCountdown.textContent = `Season ends today!`;
+                    resetCountdown.style.background = 'rgba(255, 0, 0, 0.1)';
+                    resetCountdown.style.color = '#d32f2f';
+                }
+            }
+        }
         
         function showNameChanger() {
             const modal = document.getElementById('nameModal');
@@ -713,6 +835,8 @@
             // Reset selections
             selectedAdjective = '';
             selectedNoun = '';
+            selectedNumber = '';
+            document.getElementById('numberInput').value = '';
             updateNamePreview();
             
             // Generate adjective options
@@ -758,23 +882,34 @@
             updateNamePreview();
         }
         
+        function selectNumber(number) {
+            // Validate number (1-999)
+            const num = parseInt(number);
+            if (num >= 1 && num <= 999) {
+                selectedNumber = num.toString();
+            } else {
+                selectedNumber = '';
+            }
+            updateNamePreview();
+        }
+        
         function updateNamePreview() {
             const preview = document.getElementById('namePreview');
             const confirmBtn = document.getElementById('confirmBtn');
             
-            if (selectedAdjective && selectedNoun) {
-                const fullName = selectedAdjective + selectedNoun;
+            if (selectedAdjective && selectedNoun && selectedNumber) {
+                const fullName = selectedAdjective + selectedNoun + selectedNumber;
                 preview.textContent = fullName;
                 confirmBtn.disabled = false;
             } else {
-                preview.textContent = 'Select words above';
+                preview.textContent = 'Select words and number above';
                 confirmBtn.disabled = true;
             }
         }
         
         function confirmName() {
-            if (selectedAdjective && selectedNoun) {
-                const newName = selectedAdjective + selectedNoun;
+            if (selectedAdjective && selectedNoun && selectedNumber) {
+                const newName = selectedAdjective + selectedNoun + selectedNumber;
                 playerName = newName;
                 localStorage.setItem('playbase_player_name', playerName);
                 updatePlayerNameDisplay();
@@ -902,25 +1037,25 @@
                     padding: 20px;
                 }
                 
-        .result-screen {
-            text-align: center;
-            width: 100%;
-            height: auto;
-            min-height: 60vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            box-sizing: border-box;
+                .result-screen {
+                    text-align: center;
+                    width: 100%;
+                    height: auto;
+                    min-height: 60vh;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 20px;
+                    box-sizing: border-box;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 20px;
             margin: 20px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.1);
             color: white;
-        }
-        
-        .result-time {
+                }
+                
+                .result-time {
             font-size: clamp(64px, 15vw, 96px);
             font-weight: 900;
             margin: 20px 0;
@@ -936,15 +1071,15 @@
         @keyframes pulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.05); }
-        }
-        
-        .result-message {
+                }
+                
+                .result-message {
             font-size: clamp(18px, 5vw, 24px);
             margin: 16px 0 32px 0;
             opacity: 0.9;
             font-weight: 600;
             text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
+                }
                 
                 .play-again-btn {
                     background: linear-gradient(45deg, #ff6b6b, #feca57);
@@ -979,10 +1114,10 @@
                     background: linear-gradient(45deg, #5a67d8, #6b46c1);
                 }
                 
-        .leaderboard {
-            position: absolute;
-            top: 20px;
-            right: 20px;
+                .leaderboard {
+                    position: absolute;
+                    top: 20px;
+                    right: 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             padding: 20px;
             border-radius: 16px;
@@ -991,7 +1126,7 @@
             color: white;
             z-index: 10;
             backdrop-filter: blur(10px);
-        }
+                }
                 
                 .leaderboard h3 {
                     margin-bottom: 16px;

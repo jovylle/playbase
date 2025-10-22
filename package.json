@@ -28,6 +28,7 @@
   },
   "homepage": "https://github.com/jovylle/playbase#readme",
   "dependencies": {
+    "@octokit/rest": "^22.0.0",
     "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
