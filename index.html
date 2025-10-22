@@ -751,15 +751,6 @@
             }
         }
         
-        // Load home leaderboard on page load
-        loadHomeLeaderboard();
-        
-        // Update current player name display
-        updatePlayerNameDisplay();
-        
-        // Update season display
-        updateSeasonDisplay();
-        
         // Predefined word combinations to prevent spam
         const adjectives = [
             'Swift', 'Quick', 'Lightning', 'Rapid', 'Flash', 'Sonic', 'Turbo', 'Hyper',
@@ -773,10 +764,7 @@
             'Wizard', 'Mage', 'Knight', 'Ranger', 'Rogue', 'Paladin', 'Monk', 'Bard'
         ];
         
-        function updatePlayerNameDisplay() {
-            document.getElementById('currentPlayerName').textContent = playerName;
-        }
-        
+        // Name selection variables
         let selectedAdjective = '';
         let selectedNoun = '';
         let selectedNumber = '';
@@ -784,6 +772,10 @@
         // Season tracking
         const SEASON_DURATION_DAYS = 90; // 90 days (3 months) per season
         const SEASON_START_DATE = new Date('2025-01-15T00:00:00Z'); // Season 1 start
+        
+        function updatePlayerNameDisplay() {
+            document.getElementById('currentPlayerName').textContent = playerName;
+        }
         
         function getCurrentSeason() {
             const now = new Date();
@@ -922,6 +914,13 @@
             // Skip the loading simulation for now - go straight to game
             initializeGame();
         }
+        
+        // Initialize everything on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadHomeLeaderboard();
+            updatePlayerNameDisplay();
+            updateSeasonDisplay();
+        });
         
         function showLoading() {
             // Create loading element if it doesn't exist
