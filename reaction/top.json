@@ -33,6 +33,14 @@
       "season": 4
     },
     {
+      "ms": 345,
+      "timestamp": "2025-11-10T11:17:11.584Z",
+      "id": "7361c11f",
+      "playerName": "RapidPlayer42",
+      "playerId": "1t0li8",
+      "season": 4
+    },
+    {
       "ms": 361,
       "timestamp": "2025-10-22T07:31:56.534Z",
       "id": "465b39c1",
@@ -71,15 +79,7 @@
       "playerName": "SpeedRunner",
       "playerId": "ucjf5c",
       "season": 1
-    },
-    {
-      "ms": 380,
-      "timestamp": "2025-01-15T10:30:00.000Z",
-      "id": "a1b2c3d4",
-      "playerName": "SpeedDemon",
-      "playerId": "sd_001",
-      "season": 1
     }
   ],
-  "last_updated": "2025-11-10T11:17:00.049Z"
+  "last_updated": "2025-11-10T11:17:11.584Z"
 }
