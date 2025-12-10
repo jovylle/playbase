@@ -1,6 +1,14 @@
 {
   "top": [
     {
+      "ms": 86,
+      "timestamp": "2025-12-10T04:45:02.564Z",
+      "id": "98246ec5",
+      "playerName": "HyperGamer99",
+      "playerId": "c2n0bk",
+      "season": 4
+    },
+    {
       "ms": 336,
       "timestamp": "2025-10-23T18:33:16.549Z",
       "id": "a73e0555",
@@ -71,15 +79,7 @@
       "playerName": "FlashPro5",
       "playerId": "ucjf5c",
       "season": 1
-    },
-    {
-      "ms": 378,
-      "timestamp": "2025-10-21T16:20:08.558Z",
-      "id": "45549e37",
-      "playerName": "SpeedRunner",
-      "playerId": "ucjf5c",
-      "season": 1
     }
   ],
-  "last_updated": "2025-11-10T11:17:11.584Z"
+  "last_updated": "2025-12-10T04:45:02.564Z"
 }
