@@ -33,6 +33,14 @@
       "season": 5
     },
     {
+      "ms": 328,
+      "timestamp": "2026-02-03T22:09:08.057Z",
+      "id": "96282754",
+      "playerName": "BraveNinja23",
+      "playerId": "88e5m0",
+      "season": 5
+    },
+    {
       "ms": 334,
       "timestamp": "2026-02-03T14:13:33.882Z",
       "id": "eafea102",
@@ -71,15 +79,7 @@
       "playerName": "BraveMonk222",
       "playerId": "bq7xwg",
       "season": 4
-    },
-    {
-      "ms": 345,
-      "timestamp": "2025-11-10T11:17:11.584Z",
-      "id": "7361c11f",
-      "playerName": "RapidPlayer42",
-      "playerId": "1t0li8",
-      "season": 4
     }
   ],
-  "last_updated": "2026-02-03T22:08:26.601Z"
+  "last_updated": "2026-02-03T22:09:08.057Z"
 }
