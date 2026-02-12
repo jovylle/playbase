@@ -49,6 +49,14 @@
       "season": 5
     },
     {
+      "ms": 330,
+      "timestamp": "2026-02-12T18:15:16.381Z",
+      "id": "f81267bd",
+      "playerName": "FlashFighter321",
+      "playerId": "bq7xwg",
+      "season": 5
+    },
+    {
       "ms": 334,
       "timestamp": "2026-02-03T14:13:33.882Z",
       "id": "eafea102",
@@ -71,15 +79,7 @@
       "playerName": "BraveNinja23",
       "playerId": "88e5m0",
       "season": 5
-    },
-    {
-      "ms": 339,
-      "timestamp": "2025-10-21T17:13:22.043Z",
-      "id": "9e591c34",
-      "playerName": "BraveBard",
-      "playerId": "ucjf5c",
-      "season": 1
     }
   ],
-  "last_updated": "2026-02-12T18:15:03.436Z"
+  "last_updated": "2026-02-12T18:15:16.381Z"
 }
