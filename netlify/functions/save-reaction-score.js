@@ -37,19 +37,13 @@ exports.handler = async (event, context) => {
     // Generate unique ID and timestamp
     const timestamp = new Date().toISOString();
     const id = Math.random().toString(16).substr(2, 8);
-    
-    // Calculate current season
-    const seasonStart = new Date('2025-01-15T00:00:00Z');
-    const daysSinceStart = Math.floor((new Date() - seasonStart) / (1000 * 60 * 60 * 24));
-    const currentSeason = Math.floor(daysSinceStart / 90) + 1; // 90 days (3 months) per season
-    
-    const newScore = { 
+
+    const newScore = {
       ms, 
       timestamp, 
       id,
       playerName: playerName || 'Anonymous',
-      playerId: playerId || 'unknown',
-      season: currentSeason
+      playerId: playerId || 'unknown'
     };
 
     // 2. Generate GitHub App JWT
@@ -168,21 +162,14 @@ exports.handler = async (event, context) => {
     };
 
     // Get current files
-    const [latestFile, topFile] = await Promise.all([
+    const [latestFile, topFile, historyFile] = await Promise.all([
       getGitHubFile('reaction/latest.json'),
-      getGitHubFile('reaction/top.json')
+      getGitHubFile('reaction/top.json'),
+      getGitHubFile('reaction/history.json')
     ]);
 
-    // 5. Update latest.json (always replace with new score)
-    await updateGitHubFile(
-      'reaction/latest.json',
-      newScore,
-      latestFile.sha,
-      `feat(reaction): ${playerName || 'Anonymous'} scored ${ms}ms`
-    );
-
-    // 6. Update top.json if this score makes the top 10
-    const currentTop = topFile.content.top || [];
+    // 5. Update leaderboard data
+    const currentTop = Array.isArray(topFile.content.top) ? topFile.content.top : [];
     const updatedTop = [...currentTop, newScore]
       .sort((a, b) => a.ms - b.ms) // Sort by fastest time
       .slice(0, 10); // Keep only top 10
@@ -192,17 +179,37 @@ exports.handler = async (event, context) => {
       last_updated: timestamp
     };
 
-    await updateGitHubFile(
-      'reaction/top.json',
-      topData,
-      topFile.sha,
-      `update(reaction): top scores updated with ${playerName || 'Anonymous'} ${ms}ms`
-    );
+    const currentHistory = Array.isArray(historyFile.content.records) ? historyFile.content.records : [];
+    const updatedHistory = [newScore, ...currentHistory];
+    const historyData = {
+      records: updatedHistory,
+      total_records: updatedHistory.length,
+      last_updated: timestamp,
+      best_score: updatedTop[0] || newScore
+    };
 
-    // 7. Append to history.ndjson (optional - would need different approach)
-    // For now, we'll skip this to keep the example simpler
+    await Promise.all([
+      updateGitHubFile(
+        'reaction/latest.json',
+        newScore,
+        latestFile.sha,
+        `feat(reaction): ${playerName || 'Anonymous'} scored ${ms}ms`
+      ),
+      updateGitHubFile(
+        'reaction/top.json',
+        topData,
+        topFile.sha,
+        `update(reaction): top scores updated with ${playerName || 'Anonymous'} ${ms}ms`
+      ),
+      updateGitHubFile(
+        'reaction/history.json',
+        historyData,
+        historyFile.sha,
+        `update(reaction): history updated with ${playerName || 'Anonymous'} ${ms}ms`
+      )
+    ]);
 
-    // 8. Return success response
+    // 6. Return success response
     const isNewRecord = ms <= (currentTop[0]?.ms || Infinity);
     const position = updatedTop.findIndex(score => score.id === id) + 1;
 

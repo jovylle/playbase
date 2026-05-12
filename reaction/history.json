@@ -1,5 +1,12 @@
 {
-  "top": [
+  "records": [
+    {
+      "ms": 344,
+      "timestamp": "2025-10-22T06:13:04.811Z",
+      "id": "329f124e",
+      "playerName": "BraveMonk222",
+      "playerId": "bq7xwg"
+    },
     {
       "ms": 339,
       "timestamp": "2025-10-21T17:13:22.043Z",
@@ -8,11 +15,18 @@
       "playerId": "ucjf5c"
     },
     {
-      "ms": 344,
-      "timestamp": "2025-10-22T06:13:04.811Z",
-      "id": "329f124e",
-      "playerName": "BraveMonk222",
-      "playerId": "bq7xwg"
+      "ms": 378,
+      "timestamp": "2025-10-21T16:20:08.558Z",
+      "id": "45549e37",
+      "playerName": "SpeedRunner",
+      "playerId": "ucjf5c"
+    },
+    {
+      "ms": 383,
+      "timestamp": "2025-10-21T15:55:53.076Z",
+      "id": "4f7737fc",
+      "playerName": "FlashPro5",
+      "playerId": "ucjf5c"
     },
     {
       "ms": 363,
@@ -36,10 +50,10 @@
       "playerId": "ucjf5c"
     },
     {
-      "ms": 378,
-      "timestamp": "2025-10-21T16:20:08.558Z",
-      "id": "45549e37",
-      "playerName": "SpeedRunner",
+      "ms": 408,
+      "timestamp": "2025-10-21T15:43:41.213Z",
+      "id": "93977ed0",
+      "playerName": "FlashPro5",
       "playerId": "ucjf5c"
     },
     {
@@ -50,20 +64,6 @@
       "playerId": "sd_001"
     },
     {
-      "ms": 383,
-      "timestamp": "2025-10-21T15:55:53.076Z",
-      "id": "4f7737fc",
-      "playerName": "FlashPro5",
-      "playerId": "ucjf5c"
-    },
-    {
-      "ms": 408,
-      "timestamp": "2025-10-21T15:43:41.213Z",
-      "id": "93977ed0",
-      "playerName": "FlashPro5",
-      "playerId": "ucjf5c"
-    },
-    {
       "ms": 420,
       "timestamp": "2025-01-15T09:45:00.000Z",
       "id": "e5f6g7h8",
@@ -71,5 +71,13 @@
       "playerId": "qc_002"
     }
   ],
-  "last_updated": "2025-10-22T06:13:04.811Z"
+  "total_records": 10,
+  "last_updated": "2025-10-22T06:13:04.811Z",
+  "best_score": {
+    "ms": 339,
+    "timestamp": "2025-10-21T17:13:22.043Z",
+    "id": "9e591c34",
+    "playerName": "BraveBard",
+    "playerId": "ucjf5c"
+  }
 }

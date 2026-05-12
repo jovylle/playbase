@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playbase History</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --bg: #f4f7fb;
+            --card: #ffffff;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --border: #dbe4f0;
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --accent: #7c3aed;
+            --success: #0f766e;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: linear-gradient(180deg, #eef4ff 0%, var(--bg) 220px);
+            color: var(--text);
+        }
+
+        .page {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 32px 20px 48px;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #1d4ed8 0%, #7c3aed 100%);
+            color: white;
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: 0 20px 45px rgba(37, 99, 235, 0.25);
+        }
+
+        .hero h1 {
+            margin: 0 0 10px;
+            font-size: clamp(28px, 5vw, 42px);
+        }
+
+        .hero p {
+            margin: 0;
+            max-width: 700px;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .hero-actions {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 18px;
+            border-radius: 999px;
+            text-decoration: none;
+            font-weight: 600;
+            border: 1px solid transparent;
+            transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .button:hover {
+            transform: translateY(-1px);
+        }
+
+        .button-primary {
+            background: white;
+            color: var(--primary);
+        }
+
+        .button-secondary {
+            background: rgba(255, 255, 255, 0.12);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.22);
+        }
+
+        .stats {
+            margin-top: 24px;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .stat-card,
+        .panel {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+        }
+
+        .stat-card {
+            padding: 18px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: clamp(24px, 4vw, 36px);
+            font-weight: 700;
+        }
+
+        .stat-subtext {
+            margin-top: 6px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .controls {
+            margin-top: 24px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 20px;
+        }
+
+        .controls h2 {
+            margin: 0;
+            font-size: 22px;
+        }
+
+        .controls-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        label {
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        select {
+            border: 1px solid var(--border);
+            background: white;
+            border-radius: 12px;
+            padding: 10px 14px;
+            font: inherit;
+            color: var(--text);
+        }
+
+        .table-panel {
+            margin-top: 16px;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f8fbff;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+        }
+
+        td {
+            font-size: 15px;
+        }
+
+        tbody tr:hover {
+            background: #f8fbff;
+        }
+
+        .score-chip {
+            display: inline-block;
+            min-width: 74px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: #eff6ff;
+            color: var(--primary);
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .empty,
+        .error {
+            padding: 32px 20px;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        .error {
+            color: #b91c1c;
+        }
+
+        .footer-note {
+            margin-top: 14px;
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        @media (max-width: 900px) {
+            .stats {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 640px) {
+            .page {
+                padding: 20px 14px 32px;
+            }
+
+            .hero,
+            .controls,
+            .stat-card {
+                border-radius: 16px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                align-items: flex-start;
+            }
+
+            .table-panel {
+                overflow-x: auto;
+            }
+
+            table {
+                min-width: 680px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <section class="hero">
+            <h1>Reaction History</h1>
+            <p>
+                Every saved reaction score lives here now. The main leaderboard still highlights the best times,
+                but this page keeps the full record so people can come back and see their runs forever.
+            </p>
+            <div class="hero-actions">
+                <a class="button button-primary" href="/">Play Reaction Test</a>
+                <a class="button button-secondary" href="https://raw.githubusercontent.com/jovylle/playbase/master/reaction/history.json">Open Raw JSON</a>
+            </div>
+        </section>
+
+        <section class="stats" id="stats">
+            <div class="stat-card">
+                <div class="stat-label">Total Records</div>
+                <div class="stat-value" id="totalRecords">-</div>
+                <div class="stat-subtext">Saved reaction runs</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Best Score</div>
+                <div class="stat-value" id="bestScore">-</div>
+                <div class="stat-subtext" id="bestPlayer">Waiting for data</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Latest Score</div>
+                <div class="stat-value" id="latestScore">-</div>
+                <div class="stat-subtext" id="latestPlayer">Waiting for data</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Last Updated</div>
+                <div class="stat-value" id="lastUpdated">-</div>
+                <div class="stat-subtext">Source: GitHub JSON</div>
+            </div>
+        </section>
+
+        <section class="panel controls">
+            <div>
+                <h2>All Recorded Runs</h2>
+                <div class="muted">Sorted view of the permanent history log.</div>
+            </div>
+            <div class="controls-right">
+                <label for="sortSelect">Sort by</label>
+                <select id="sortSelect">
+                    <option value="newest">Newest first</option>
+                    <option value="fastest">Fastest first</option>
+                    <option value="player">Player name</option>
+                </select>
+            </div>
+        </section>
+
+        <section class="panel table-panel">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Player</th>
+                        <th>Score</th>
+                        <th>When</th>
+                        <th>ID</th>
+                    </tr>
+                </thead>
+                <tbody id="historyBody">
+                    <tr>
+                        <td colspan="5" class="empty">Loading history...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <div class="footer-note" id="footerNote">Fetching `reaction/history.json`...</div>
+    </div>
+
+    <script>
+        const HISTORY_URL = 'https://raw.githubusercontent.com/jovylle/playbase/master/reaction/history.json';
+        let allRecords = [];
+
+        function formatScore(record) {
+            return record && typeof record.ms === 'number' ? `${record.ms}ms` : '-';
+        }
+
+        function formatPlayer(record) {
+            return record && record.playerName ? record.playerName : 'Anonymous';
+        }
+
+        function formatDate(value) {
+            if (!value) return '-';
+
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) {
+                return value;
+            }
+
+            return date.toLocaleString(undefined, {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit'
+            });
+        }
+
+        function getNewestRecord(records) {
+            return [...records].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0] || null;
+        }
+
+        function getFastestRecord(records) {
+            return [...records].sort((a, b) => a.ms - b.ms || new Date(b.timestamp) - new Date(a.timestamp))[0] || null;
+        }
+
+        function sortRecords(records, mode) {
+            const sorted = [...records];
+
+            if (mode === 'fastest') {
+                return sorted.sort((a, b) => a.ms - b.ms || new Date(b.timestamp) - new Date(a.timestamp));
+            }
+
+            if (mode === 'player') {
+                return sorted.sort((a, b) => {
+                    const nameCompare = formatPlayer(a).localeCompare(formatPlayer(b));
+                    if (nameCompare !== 0) return nameCompare;
+                    return a.ms - b.ms;
+                });
+            }
+
+            return sorted.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        }
+
+        function renderStats(records, payload) {
+            const fastest = payload.best_score || getFastestRecord(records);
+            const newest = getNewestRecord(records);
+            const updatedAt = payload.last_updated || newest?.timestamp;
+
+            document.getElementById('totalRecords').textContent = String(payload.total_records || records.length || 0);
+            document.getElementById('bestScore').textContent = formatScore(fastest);
+            document.getElementById('bestPlayer').textContent = fastest ? `${formatPlayer(fastest)} holds the best run` : 'No scores yet';
+            document.getElementById('latestScore').textContent = formatScore(newest);
+            document.getElementById('latestPlayer').textContent = newest ? `${formatPlayer(newest)} is the latest record` : 'No scores yet';
+            document.getElementById('lastUpdated').textContent = updatedAt ? formatDate(updatedAt) : '-';
+        }
+
+        function renderTable(records) {
+            const tbody = document.getElementById('historyBody');
+
+            if (!records.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty">No scores recorded yet.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = records.map((record, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${formatPlayer(record)}</td>
+                    <td><span class="score-chip">${formatScore(record)}</span></td>
+                    <td>${formatDate(record.timestamp)}</td>
+                    <td><code>${record.id || '-'}</code></td>
+                </tr>
+            `).join('');
+        }
+
+        function renderCurrentSort() {
+            const mode = document.getElementById('sortSelect').value;
+            renderTable(sortRecords(allRecords, mode));
+        }
+
+        async function loadHistory() {
+            try {
+                const response = await fetch(HISTORY_URL, { cache: 'no-store' });
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch history (${response.status})`);
+                }
+
+                const payload = await response.json();
+                allRecords = Array.isArray(payload.records) ? payload.records : [];
+
+                renderStats(allRecords, payload);
+                renderCurrentSort();
+
+                document.getElementById('footerNote').textContent =
+                    allRecords.length > 0
+                        ? `${allRecords.length} saved runs loaded from GitHub.`
+                        : 'History is live, but no scores have been saved yet.';
+            } catch (error) {
+                console.error('Failed to load history:', error);
+                document.getElementById('historyBody').innerHTML =
+                    `<tr><td colspan="5" class="error">${error.message}</td></tr>`;
+                document.getElementById('footerNote').textContent =
+                    'Could not load history right now.';
+            }
+        }
+
+        document.getElementById('sortSelect').addEventListener('change', renderCurrentSort);
+        loadHistory();
+    </script>
+</body>
+</html>

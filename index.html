@@ -433,6 +433,25 @@
             background: #424242;
             box-shadow: 0 1px 2px rgba(0,0,0,0.2);
         }
+
+        .history-link {
+            display: inline-block;
+            text-decoration: none;
+            color: white;
+        }
+
+        .home-history-link {
+            margin-top: 16px;
+        }
+
+        .leaderboard-history-link {
+            background: #1976d2;
+            padding: 8px 14px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 2px 6px rgba(25, 118, 210, 0.25);
+        }
         
         .game-info {
             background: #ffffff;
@@ -518,7 +537,7 @@
             font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
         }
         
-        .season-info {
+        .leaderboard-note {
             background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
             border: 1px solid #e1f5fe;
             border-radius: 8px;
@@ -527,27 +546,18 @@
             text-align: center;
         }
         
-        .season-title {
+        .leaderboard-note-title {
             font-size: 16px;
             font-weight: 500;
             color: #1976d2;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
         }
         
-        .season-details {
+        .leaderboard-note-copy {
             font-size: 14px;
             color: #666;
-            margin-bottom: 8px;
-        }
-        
-        .reset-countdown {
-            font-size: 13px;
-            color: #ff6b35;
-            font-weight: 500;
-            background: rgba(255, 107, 53, 0.1);
-            padding: 4px 8px;
-            border-radius: 4px;
-            display: inline-block;
+            line-height: 1.4;
+            margin-bottom: 10px;
         }
         
         .score-item {
@@ -630,15 +640,15 @@
                     <li>> 400ms: 🐌 Keep practicing!</li>
                 </ul>
                 
-                <h4>🌱 Season Info:</h4>
-                <p>• Seasons last 3 months (90 days)<br>
-                • Leaderboards reset every season<br>
-                • Your best scores are saved forever!</p>
+                <h4>📚 Records:</h4>
+                <p>• The leaderboard is now all-time<br>
+                • Every saved score stays in history<br>
+                • You can browse the full archive anytime</p>
             </div>
             
             <!-- Home Leaderboard -->
             <div class="home-leaderboard">
-                <h3>🏆 Top Scores</h3>
+                <h3>🏆 All-Time Best</h3>
                 <div id="homeLeaderboardList">
                     <div class="score-item">
                         <span class="rank">#1</span>
@@ -646,6 +656,7 @@
                         <span class="score-time">-</span>
                     </div>
                 </div>
+                <a class="play-again-btn history-link home-history-link" href="/history.html">📚 View All Records</a>
             </div>
         </div>
         
@@ -669,15 +680,16 @@
             <div class="result-message" id="resultMessage">Great job!</div>
             <button class="play-again-btn" onclick="playAgain()">🔄 Play Again</button>
             <button class="play-again-btn back-btn" onclick="goHome()">🏠 Home</button>
+            <a class="play-again-btn history-link" href="/history.html">📚 View All Records</a>
         </div>
         
         <div class="leaderboard">
-            <div class="season-info">
-                <div class="season-title">🌱 Season 1</div>
-                <div class="season-details">Started: Jan 15, 2025</div>
-                <div class="reset-countdown" id="resetCountdown">Resets in 45 days</div>
+            <div class="leaderboard-note">
+                <div class="leaderboard-note-title">Permanent Records</div>
+                <div class="leaderboard-note-copy">Top scores stay here, and every saved run is kept in the full history page.</div>
+                <a class="history-link leaderboard-history-link" href="/history.html">View Full History</a>
             </div>
-            <h3>🏆 Top Scores</h3>
+            <h3>🏆 All-Time Top 5</h3>
             <div id="leaderboardList">
                 <div class="score-item">
                     <span class="rank">#1</span>
@@ -834,54 +846,8 @@
         let selectedNoun = '';
         let selectedNumber = '';
         
-        // Season tracking
-        const SEASON_DURATION_DAYS = 90; // 90 days (3 months) per season
-        const SEASON_START_DATE = new Date('2025-01-15T00:00:00Z'); // Season 1 start
-        
         function updatePlayerNameDisplay() {
             document.getElementById('currentPlayerName').textContent = playerName;
-        }
-        
-        function getCurrentSeason() {
-            const now = new Date();
-            const daysSinceStart = Math.floor((now - SEASON_START_DATE) / (1000 * 60 * 60 * 24));
-            const currentSeason = Math.floor(daysSinceStart / SEASON_DURATION_DAYS) + 1;
-            const seasonStart = new Date(SEASON_START_DATE);
-            seasonStart.setDate(seasonStart.getDate() + (currentSeason - 1) * SEASON_DURATION_DAYS);
-            const seasonEnd = new Date(seasonStart);
-            seasonEnd.setDate(seasonEnd.getDate() + SEASON_DURATION_DAYS);
-            
-            return {
-                number: currentSeason,
-                start: seasonStart,
-                end: seasonEnd,
-                daysRemaining: Math.max(0, Math.ceil((seasonEnd - now) / (1000 * 60 * 60 * 24)))
-            };
-        }
-        
-        function updateSeasonDisplay() {
-            const season = getCurrentSeason();
-            const seasonTitle = document.querySelector('.season-title');
-            const seasonDetails = document.querySelector('.season-details');
-            const resetCountdown = document.getElementById('resetCountdown');
-            
-            if (seasonTitle) {
-                seasonTitle.textContent = `🌱 Season ${season.number}`;
-            }
-            
-            if (seasonDetails) {
-                seasonDetails.textContent = `Started: ${season.start.toLocaleDateString()}`;
-            }
-            
-            if (resetCountdown) {
-                if (season.daysRemaining > 0) {
-                    resetCountdown.textContent = `Resets in ${season.daysRemaining} days`;
-                } else {
-                    resetCountdown.textContent = `Season ends today!`;
-                    resetCountdown.style.background = 'rgba(255, 0, 0, 0.1)';
-                    resetCountdown.style.color = '#d32f2f';
-                }
-            }
         }
         
         function showNameChanger() {
@@ -984,7 +950,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadHomeLeaderboard();
             updatePlayerNameDisplay();
-            updateSeasonDisplay();
         });
         
         function showLoading() {
