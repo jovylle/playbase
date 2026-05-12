@@ -1,6 +1,83 @@
 {
   "records": [
     {
+      "ms": 402,
+      "timestamp": "2026-03-02T06:32:56.642Z",
+      "id": "fe0f9b91",
+      "playerName": "FlashFighter321",
+      "playerId": "bq7xwg"
+    },
+    {
+      "ms": 268,
+      "timestamp": "2026-02-25T19:46:35.906Z",
+      "id": "13d78b5f",
+      "playerName": "QuickReactor23",
+      "playerId": "9s3zgc"
+    },
+    {
+      "ms": 273,
+      "timestamp": "2026-02-25T19:46:22.890Z",
+      "id": "0fe92a25",
+      "playerName": "QuickReactor23",
+      "playerId": "9s3zgc"
+    },
+    {
+      "ms": 299,
+      "timestamp": "2026-02-25T19:40:34.990Z",
+      "id": "5b8792e0",
+      "playerName": "QuickReactor23",
+      "playerId": "9s3zgc"
+    },
+    {
+      "ms": 268,
+      "timestamp": "2026-02-25T19:40:26.571Z",
+      "id": "45eef04c",
+      "playerName": "QuickReactor23",
+      "playerId": "9s3zgc"
+    },
+    {
+      "ms": 297,
+      "timestamp": "2026-02-25T19:40:12.604Z",
+      "id": "6e0c38e0",
+      "playerName": "QuickReactor23",
+      "playerId": "9s3zgc"
+    },
+    {
+      "ms": 177,
+      "timestamp": "2026-02-03T22:09:25.452Z",
+      "id": "a24f43ae",
+      "playerName": "BraveNinja23",
+      "playerId": "88e5m0"
+    },
+    {
+      "ms": 305,
+      "timestamp": "2026-02-02T19:53:52.256Z",
+      "id": "29a8f0f7",
+      "playerName": "HyperPlayer56",
+      "playerId": "9s3zgc"
+    },
+    {
+      "ms": 274,
+      "timestamp": "2026-02-02T19:53:40.101Z",
+      "id": "55561f2d",
+      "playerName": "HyperPlayer56",
+      "playerId": "9s3zgc"
+    },
+    {
+      "ms": 323,
+      "timestamp": "2026-02-02T19:53:34.661Z",
+      "id": "075216db",
+      "playerName": "HyperPlayer56",
+      "playerId": "9s3zgc"
+    },
+    {
+      "ms": 86,
+      "timestamp": "2025-12-10T04:45:02.564Z",
+      "id": "98246ec5",
+      "playerName": "HyperGamer99",
+      "playerId": "c2n0bk"
+    },
+    {
       "ms": 344,
       "timestamp": "2025-10-22T06:13:04.811Z",
       "id": "329f124e",
@@ -71,13 +148,13 @@
       "playerId": "qc_002"
     }
   ],
-  "total_records": 10,
-  "last_updated": "2025-10-22T06:13:04.811Z",
+  "total_records": 21,
+  "last_updated": "2026-03-02T06:32:56.642Z",
   "best_score": {
-    "ms": 339,
-    "timestamp": "2025-10-21T17:13:22.043Z",
-    "id": "9e591c34",
-    "playerName": "BraveBard",
-    "playerId": "ucjf5c"
+    "ms": 86,
+    "timestamp": "2025-12-10T04:45:02.564Z",
+    "id": "98246ec5",
+    "playerName": "HyperGamer99",
+    "playerId": "c2n0bk"
   }
 }

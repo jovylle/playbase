@@ -1,155 +1,74 @@
 {
   "top": [
     {
-<<<<<<< HEAD
-      "ms": 339,
-      "timestamp": "2025-10-21T17:13:22.043Z",
-      "id": "9e591c34",
-      "playerName": "BraveBard",
-      "playerId": "ucjf5c"
-    },
-    {
-      "ms": 344,
-      "timestamp": "2025-10-22T06:13:04.811Z",
-      "id": "329f124e",
-      "playerName": "BraveMonk222",
-      "playerId": "bq7xwg"
-    },
-    {
-      "ms": 363,
-      "timestamp": "2025-10-21T15:50:08.912Z",
-      "id": "b1a25724",
-      "playerName": "FlashPro5",
-      "playerId": "ucjf5c"
-    },
-    {
-      "ms": 369,
-      "timestamp": "2025-10-21T15:47:34.990Z",
-      "id": "8717ebc2",
-      "playerName": "FlashPro5",
-      "playerId": "ucjf5c"
-    },
-    {
-      "ms": 370,
-      "timestamp": "2025-10-21T15:46:36.533Z",
-      "id": "9024ef01",
-      "playerName": "FlashPro5",
-      "playerId": "ucjf5c"
-    },
-    {
-      "ms": 378,
-      "timestamp": "2025-10-21T16:20:08.558Z",
-      "id": "45549e37",
-      "playerName": "SpeedRunner",
-      "playerId": "ucjf5c"
-    },
-    {
-      "ms": 380,
-      "timestamp": "2025-01-15T10:30:00.000Z",
-      "id": "a1b2c3d4",
-      "playerName": "SpeedDemon",
-      "playerId": "sd_001"
-    },
-    {
-      "ms": 383,
-      "timestamp": "2025-10-21T15:55:53.076Z",
-      "id": "4f7737fc",
-      "playerName": "FlashPro5",
-      "playerId": "ucjf5c"
-    },
-    {
-      "ms": 408,
-      "timestamp": "2025-10-21T15:43:41.213Z",
-      "id": "93977ed0",
-      "playerName": "FlashPro5",
-      "playerId": "ucjf5c"
-    },
-    {
-      "ms": 420,
-      "timestamp": "2025-01-15T09:45:00.000Z",
-      "id": "e5f6g7h8",
-      "playerName": "QuickClick",
-      "playerId": "qc_002"
-=======
       "ms": 86,
       "timestamp": "2025-12-10T04:45:02.564Z",
       "id": "98246ec5",
       "playerName": "HyperGamer99",
-      "playerId": "c2n0bk",
-      "season": 4
+      "playerId": "c2n0bk"
     },
     {
       "ms": 177,
       "timestamp": "2026-02-03T22:09:25.452Z",
       "id": "a24f43ae",
       "playerName": "BraveNinja23",
-      "playerId": "88e5m0",
-      "season": 5
+      "playerId": "88e5m0"
     },
     {
       "ms": 268,
       "timestamp": "2026-02-25T19:40:26.571Z",
       "id": "45eef04c",
       "playerName": "QuickReactor23",
-      "playerId": "9s3zgc",
-      "season": 5
+      "playerId": "9s3zgc"
     },
     {
       "ms": 268,
       "timestamp": "2026-02-25T19:46:35.906Z",
       "id": "13d78b5f",
       "playerName": "QuickReactor23",
-      "playerId": "9s3zgc",
-      "season": 5
+      "playerId": "9s3zgc"
     },
     {
       "ms": 273,
       "timestamp": "2026-02-25T19:46:22.890Z",
       "id": "0fe92a25",
       "playerName": "QuickReactor23",
-      "playerId": "9s3zgc",
-      "season": 5
+      "playerId": "9s3zgc"
     },
     {
       "ms": 274,
       "timestamp": "2026-02-02T19:53:40.101Z",
       "id": "55561f2d",
       "playerName": "HyperPlayer56",
-      "playerId": "9s3zgc",
-      "season": 5
+      "playerId": "9s3zgc"
     },
     {
       "ms": 297,
       "timestamp": "2026-02-25T19:40:12.604Z",
       "id": "6e0c38e0",
       "playerName": "QuickReactor23",
-      "playerId": "9s3zgc",
-      "season": 5
+      "playerId": "9s3zgc"
     },
     {
       "ms": 299,
       "timestamp": "2026-02-25T19:40:34.990Z",
       "id": "5b8792e0",
       "playerName": "QuickReactor23",
-      "playerId": "9s3zgc",
-      "season": 5
+      "playerId": "9s3zgc"
     },
     {
       "ms": 305,
       "timestamp": "2026-02-02T19:53:52.256Z",
       "id": "29a8f0f7",
       "playerName": "HyperPlayer56",
-      "playerId": "9s3zgc",
-      "season": 5
+      "playerId": "9s3zgc"
     },
     {
       "ms": 323,
       "timestamp": "2026-02-02T19:53:34.661Z",
       "id": "075216db",
       "playerName": "HyperPlayer56",
-      "playerId": "9s3zgc",
-      "season": 5
->>>>>>> 9f7e811dbfffdf8fe464d2b588b62195f00b464b
+      "playerId": "9s3zgc"
     }
   ],
   "last_updated": "2026-03-02T06:32:56.642Z"
