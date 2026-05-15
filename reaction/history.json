@@ -1,6 +1,13 @@
 {
   "records": [
     {
+      "ms": 520,
+      "timestamp": "2026-05-15T06:27:23.428Z",
+      "id": "6e1b6c55",
+      "playerName": "LightningAce48",
+      "playerId": "t2ffu5"
+    },
+    {
       "ms": 404,
       "timestamp": "2026-05-12T17:12:28.287Z",
       "id": "23caa1c8",
@@ -155,8 +162,8 @@
       "playerId": "qc_002"
     }
   ],
-  "total_records": 22,
-  "last_updated": "2026-05-12T17:12:28.287Z",
+  "total_records": 23,
+  "last_updated": "2026-05-15T06:27:23.428Z",
   "best_score": {
     "ms": 86,
     "timestamp": "2025-12-10T04:45:02.564Z",
