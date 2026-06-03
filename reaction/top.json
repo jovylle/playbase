@@ -15,6 +15,13 @@
       "playerId": "88e5m0"
     },
     {
+      "ms": 190,
+      "timestamp": "2026-06-03T06:03:50.409Z",
+      "id": "98dfae85",
+      "playerName": "RapidClicker13",
+      "playerId": "2p9n73"
+    },
+    {
       "ms": 268,
       "timestamp": "2026-02-25T19:40:26.571Z",
       "id": "45eef04c",
@@ -62,14 +69,7 @@
       "id": "05e0aa0d",
       "playerName": "RapidClicker13",
       "playerId": "2p9n73"
-    },
-    {
-      "ms": 292,
-      "timestamp": "2026-06-03T05:59:24.634Z",
-      "id": "cb30e266",
-      "playerName": "RapidClicker13",
-      "playerId": "2p9n73"
     }
   ],
-  "last_updated": "2026-06-03T06:03:44.764Z"
+  "last_updated": "2026-06-03T06:03:50.409Z"
 }
