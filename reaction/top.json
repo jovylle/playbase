@@ -57,19 +57,19 @@
       "playerId": "9s3zgc"
     },
     {
+      "ms": 299,
+      "timestamp": "2026-06-03T05:58:09.066Z",
+      "id": "12682116",
+      "playerName": "RapidClicker13",
+      "playerId": "2p9n73"
+    },
+    {
       "ms": 305,
       "timestamp": "2026-02-02T19:53:52.256Z",
       "id": "29a8f0f7",
       "playerName": "HyperPlayer56",
       "playerId": "9s3zgc"
-    },
-    {
-      "ms": 323,
-      "timestamp": "2026-02-02T19:53:34.661Z",
-      "id": "075216db",
-      "playerName": "HyperPlayer56",
-      "playerId": "9s3zgc"
     }
   ],
-  "last_updated": "2026-03-02T06:32:56.642Z"
+  "last_updated": "2026-06-03T05:58:09.066Z"
 }
