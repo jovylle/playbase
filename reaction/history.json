@@ -1,6 +1,13 @@
 {
   "records": [
     {
+      "ms": 274,
+      "timestamp": "2026-06-03T05:58:18.810Z",
+      "id": "4c2abb33",
+      "playerName": "RapidClicker13",
+      "playerId": "2p9n73"
+    },
+    {
       "ms": 345,
       "timestamp": "2026-06-03T05:57:56.432Z",
       "id": "19cc27dd",
@@ -169,8 +176,8 @@
       "playerId": "qc_002"
     }
   ],
-  "total_records": 24,
-  "last_updated": "2026-06-03T05:57:56.432Z",
+  "total_records": 25,
+  "last_updated": "2026-06-03T05:58:18.810Z",
   "best_score": {
     "ms": 86,
     "timestamp": "2025-12-10T04:45:02.564Z",
