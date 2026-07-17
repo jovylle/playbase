@@ -1,16 +1,19 @@
-const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
 /**
- * Netlify Function: Save Reaction Test Score to GitHub JSON Database
- * 
- * This function demonstrates the full workflow:
+ * Netlify Function: Save Reaction Test Score
+ *
+ * This function no longer commits directly to this repo. Instead:
  * 1. Validate incoming score data
- * 2. Generate GitHub App JWT token
- * 3. Exchange JWT for temporary access token
- * 4. Read existing JSON files from GitHub
- * 5. Update data structures
- * 6. Commit changes back to GitHub
+ * 2. Generate a unique score record
+ * 3. POST it to the static-encrypted-cms ingestion API (content.jovylle.com),
+ *    which owns the live `fast-scores` collection
+ * 4. Use the full merged leaderboard returned by that API to compute
+ *    isNewRecord/position for this score
  */
+
+const CONTENT_API_BASE = process.env.CONTENT_API_BASE || 'https://content.jovylle.com';
+const TOP_N = 10;
 
 exports.handler = async (event, context) => {
   // Only allow POST requests
@@ -24,195 +27,65 @@ exports.handler = async (event, context) => {
   try {
     // 1. Parse and validate the incoming score
     const { ms, playerName, playerId } = JSON.parse(event.body);
-    
+
     if (!ms || typeof ms !== 'number' || ms < 80 || ms > 1000) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ 
-          error: 'Invalid reaction time. Must be between 80-1000ms.' 
+        body: JSON.stringify({
+          error: 'Invalid reaction time. Must be between 80-1000ms.'
         })
       };
     }
 
     // Generate unique ID and timestamp
     const timestamp = new Date().toISOString();
-    const id = Math.random().toString(16).substr(2, 8);
+    // Math.random().toString(16) can yield fewer than 8 hex chars, which
+    // the sibling API's schema now strictly rejects (^[a-f0-9]{8}$). This
+    // always produces exactly 8 lowercase hex characters.
+    const id = crypto.randomBytes(4).toString('hex');
 
     const newScore = {
-      ms, 
-      timestamp, 
+      ms,
+      timestamp,
       id,
       playerName: playerName || 'Anonymous',
       playerId: playerId || 'unknown'
     };
 
-    // 2. Generate GitHub App JWT
-    const payload = {
-      iat: Math.floor(Date.now() / 1000) - 60, // 1 minute ago (clock skew)
-      exp: Math.floor(Date.now() / 1000) + 600, // 10 minutes from now
-      iss: process.env.GITHUB_APP_ID
-    };
-
-    // Handle different private key formats
-    let privateKey = process.env.GITHUB_PRIVATE_KEY;
-    
-    // If the key doesn't have proper line breaks, fix it
-    if (privateKey.includes('\\n')) {
-      privateKey = privateKey.replace(/\\n/g, '\n');
-    }
-    
-    // Ensure proper formatting
-    if (!privateKey.includes('\n')) {
-      // If it's all on one line, reconstruct it properly
-      privateKey = privateKey
-        .replace('-----BEGIN PRIVATE KEY-----', '-----BEGIN PRIVATE KEY-----\n')
-        .replace('-----END PRIVATE KEY-----', '\n-----END PRIVATE KEY-----')
-        .replace(/(.{64})/g, '$1\n')  // Add newlines every 64 characters
-        .replace(/\n\n/g, '\n')       // Remove double newlines
-        .replace(/\n-----END/g, '\n-----END'); // Fix the end marker
+    if (!process.env.CONTENT_INGEST_TOKEN) {
+      throw new Error('CONTENT_INGEST_TOKEN is not configured');
     }
 
-    console.log('Private key format check:', {
-      hasBeginMarker: privateKey.includes('-----BEGIN PRIVATE KEY-----'),
-      hasEndMarker: privateKey.includes('-----END PRIVATE KEY-----'),
-      hasNewlines: privateKey.includes('\n'),
-      length: privateKey.length
-    });
-
-    const jwtToken = jwt.sign(payload, privateKey, { 
-      algorithm: 'RS256' 
-    });
-
-    // 3. Exchange JWT for installation access token
-    const authResponse = await fetch(
-      `https://api.github.com/app/installations/${process.env.GITHUB_INSTALLATION_ID}/access_tokens`,
+    // 2. Submit the score to the content API's fast-scores collection
+    const ingestResponse = await fetch(
+      `${CONTENT_API_BASE}/.netlify/functions/admin-json-file?collection=fast-scores`,
       {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${jwtToken}`,
-          'Accept': 'application/vnd.github.v3+json',
-          'User-Agent': 'playbase-bot/1.0'
-        }
+          'Authorization': `Bearer ${process.env.CONTENT_INGEST_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ collection: 'fast-scores', record: newScore })
       }
     );
 
-    if (!authResponse.ok) {
-      console.error('GitHub auth failed:', await authResponse.text());
-      throw new Error('GitHub authentication failed');
+    if (!ingestResponse.ok) {
+      const errorBody = await ingestResponse.text();
+      console.error('Content API rejected score:', ingestResponse.status, errorBody);
+      throw new Error(`Content API request failed: ${ingestResponse.status}`);
     }
 
-    const { token: accessToken } = await authResponse.json();
+    const ingestResult = await ingestResponse.json();
+    const scores = Array.isArray(ingestResult.data?.scores) ? ingestResult.data.scores : [];
 
-    // 4. Read current JSON files from GitHub
-    const owner = 'jovylle'; // Your GitHub username
-    const repo = 'playbase';
-    const branch = 'master';
+    // Rank against the top N fastest times, mirroring the old top.json
+    // semantics: fastest overall is a new record, position is this score's
+    // 1-indexed rank within the top N once sorted ascending by ms.
+    const rankedTop = [...scores].sort((a, b) => a.ms - b.ms).slice(0, TOP_N);
+    const isNewRecord = ms <= (rankedTop[0]?.ms ?? Infinity);
+    const position = rankedTop.findIndex(score => score.id === id) + 1;
 
-    // Helper function to get file from GitHub
-    const getGitHubFile = async (path) => {
-      const response = await fetch(
-        `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`,
-        {
-          headers: {
-            'Authorization': `token ${accessToken}`,
-            'Accept': 'application/vnd.github.v3+json',
-            'User-Agent': 'playbase-bot/1.0'
-          }
-        }
-      );
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch ${path}: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      return {
-        content: JSON.parse(Buffer.from(data.content, 'base64').toString()),
-        sha: data.sha // Needed for updates
-      };
-    };
-
-    // Helper function to update file on GitHub
-    const updateGitHubFile = async (path, content, sha, message) => {
-      const response = await fetch(
-        `https://api.github.com/repos/${owner}/${repo}/contents/${path}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Authorization': `token ${accessToken}`,
-            'Accept': 'application/vnd.github.v3+json',
-            'User-Agent': 'playbase-bot/1.0',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            message,
-            content: Buffer.from(JSON.stringify(content, null, 2)).toString('base64'),
-            sha,
-            branch
-          })
-        }
-      );
-
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`Failed to update ${path}: ${error}`);
-      }
-
-      return response.json();
-    };
-
-    // Get current files
-    const [latestFile, topFile, historyFile] = await Promise.all([
-      getGitHubFile('reaction/latest.json'),
-      getGitHubFile('reaction/top.json'),
-      getGitHubFile('reaction/history.json')
-    ]);
-
-    // 5. Update leaderboard data
-    const currentTop = Array.isArray(topFile.content.top) ? topFile.content.top : [];
-    const updatedTop = [...currentTop, newScore]
-      .sort((a, b) => a.ms - b.ms) // Sort by fastest time
-      .slice(0, 10); // Keep only top 10
-
-    const topData = {
-      top: updatedTop,
-      last_updated: timestamp
-    };
-
-    const currentHistory = Array.isArray(historyFile.content.records) ? historyFile.content.records : [];
-    const updatedHistory = [newScore, ...currentHistory];
-    const historyData = {
-      records: updatedHistory,
-      total_records: updatedHistory.length,
-      last_updated: timestamp,
-      best_score: updatedTop[0] || newScore
-    };
-
-    await Promise.all([
-      updateGitHubFile(
-        'reaction/latest.json',
-        newScore,
-        latestFile.sha,
-        `feat(reaction): ${playerName || 'Anonymous'} scored ${ms}ms`
-      ),
-      updateGitHubFile(
-        'reaction/top.json',
-        topData,
-        topFile.sha,
-        `update(reaction): top scores updated with ${playerName || 'Anonymous'} ${ms}ms`
-      ),
-      updateGitHubFile(
-        'reaction/history.json',
-        historyData,
-        historyFile.sha,
-        `update(reaction): history updated with ${playerName || 'Anonymous'} ${ms}ms`
-      )
-    ]);
-
-    // 6. Return success response
-    const isNewRecord = ms <= (currentTop[0]?.ms || Infinity);
-    const position = updatedTop.findIndex(score => score.id === id) + 1;
-
+    // 3. Return success response
     return {
       statusCode: 200,
       headers: {
@@ -224,20 +97,20 @@ exports.handler = async (event, context) => {
         score: newScore,
         isNewRecord,
         position: position || null,
-        message: isNewRecord ? 
-          `🔥 NEW RECORD! ${ms}ms` : 
+        message: isNewRecord ?
+          `🔥 NEW RECORD! ${ms}ms` :
           position ? `Nice! Ranked #${position} with ${ms}ms` : `${ms}ms recorded`
       })
     };
 
   } catch (error) {
     console.error('Function error:', error);
-    
+
     return {
       statusCode: 500,
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         error: 'Failed to save score',
-        details: error.message 
+        details: error.message
       })
     };
   }
@@ -245,27 +118,28 @@ exports.handler = async (event, context) => {
 
 /**
  * Environment Variables Required:
- * 
- * GITHUB_APP_ID - Your GitHub App ID (numeric)
- * GITHUB_INSTALLATION_ID - Installation ID after installing app to repo
- * GITHUB_PRIVATE_KEY - Private key from GitHub App (PEM format with \n escaped)
- * 
+ *
+ * CONTENT_INGEST_TOKEN - Bearer token for content.jovylle.com's fast-scores
+ *                        ingestion API (a `fast-scores`-scoped, commit-write
+ *                        entry in that project's INGEST_TOKENS env var)
+ * CONTENT_API_BASE - Base URL of the content API (optional, defaults to
+ *                    https://content.jovylle.com)
+ *
  * Example .env:
- * GITHUB_APP_ID=123456
- * GITHUB_INSTALLATION_ID=789012
- * GITHUB_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC..."
+ * CONTENT_INGEST_TOKEN=your-fast-scores-ingest-token
+ * CONTENT_API_BASE=https://content.jovylle.com
  */
 
 /**
  * Frontend Usage Example:
- * 
+ *
  * const submitScore = async (reactionTimeMs) => {
  *   const response = await fetch('/.netlify/functions/save-reaction-score', {
  *     method: 'POST',
  *     headers: { 'Content-Type': 'application/json' },
  *     body: JSON.stringify({ ms: reactionTimeMs })
  *   });
- *   
+ *
  *   const result = await response.json();
  *   console.log(result.message); // "🔥 NEW RECORD! 142ms"
  * };

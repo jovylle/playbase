@@ -277,7 +277,7 @@
             </p>
             <div class="hero-actions">
                 <a class="button button-primary" href="/">Play Reaction Test</a>
-                <a class="button button-secondary" href="https://raw.githubusercontent.com/jovylle/playbase/master/reaction/history.json">Open Raw JSON</a>
+                <a class="button button-secondary" href="https://content.jovylle.com/data/fast-scores.json">Open Raw JSON</a>
             </div>
         </section>
 
@@ -338,11 +338,11 @@
             </table>
         </section>
 
-        <div class="footer-note" id="footerNote">Fetching `reaction/history.json`...</div>
+        <div class="footer-note" id="footerNote">Fetching `fast-scores.json`...</div>
     </div>
 
     <script>
-        const HISTORY_URL = 'https://raw.githubusercontent.com/jovylle/playbase/master/reaction/history.json';
+        const HISTORY_URL = 'https://content.jovylle.com/data/fast-scores.json';
         let allRecords = [];
 
         function formatScore(record) {
@@ -441,14 +441,24 @@
                 }
 
                 const payload = await response.json();
-                allRecords = Array.isArray(payload.records) ? payload.records : [];
+                const scores = Array.isArray(payload.scores) ? payload.scores : [];
 
-                renderStats(allRecords, payload);
+                // fast-scores.json is a flat, unsorted collection; reconstruct the
+                // "history, newest first" shape/aggregates history.json used to provide.
+                allRecords = [...scores].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                const reshapedPayload = {
+                    records: allRecords,
+                    total_records: allRecords.length,
+                    last_updated: getNewestRecord(allRecords)?.timestamp,
+                    best_score: getFastestRecord(allRecords)
+                };
+
+                renderStats(allRecords, reshapedPayload);
                 renderCurrentSort();
 
                 document.getElementById('footerNote').textContent =
                     allRecords.length > 0
-                        ? `${allRecords.length} saved runs loaded from GitHub.`
+                        ? `${allRecords.length} saved runs loaded from content.jovylle.com.`
                         : 'History is live, but no scores have been saved yet.';
             } catch (error) {
                 console.error('Failed to load history:', error);
