@@ -1,6 +1,13 @@
 {
   "records": [
     {
+      "ms": 351,
+      "timestamp": "2026-07-17T12:56:04.226Z",
+      "id": "bbf78ea4",
+      "playerName": "CoolBard999",
+      "playerId": "7hy3im"
+    },
+    {
       "ms": 375,
       "timestamp": "2026-07-17T12:55:46.372Z",
       "id": "559a1fc1",
@@ -260,8 +267,8 @@
       "playerId": "qc_002"
     }
   ],
-  "total_records": 37,
-  "last_updated": "2026-07-17T12:55:46.372Z",
+  "total_records": 38,
+  "last_updated": "2026-07-17T12:56:04.226Z",
   "best_score": {
     "ms": 85,
     "timestamp": "2026-06-05T03:35:46.702Z",
