@@ -277,7 +277,7 @@
             </p>
             <div class="hero-actions">
                 <a class="button button-primary" href="/">Play Reaction Test</a>
-                <a class="button button-secondary" href="https://content.jovylle.com/data/fast-scores.json">Open Raw JSON</a>
+                <a class="button button-secondary" href="https://content.jovylle.com/api/scores?game=reaction&sort=recent&limit=200">Open Raw JSON</a>
             </div>
         </section>
 
@@ -300,7 +300,7 @@
             <div class="stat-card">
                 <div class="stat-label">Last Updated</div>
                 <div class="stat-value" id="lastUpdated">-</div>
-                <div class="stat-subtext">Source: GitHub JSON</div>
+                <div class="stat-subtext">Source: content.jovylle.com API</div>
             </div>
         </section>
 
@@ -342,7 +342,7 @@
     </div>
 
     <script>
-        const HISTORY_URL = 'https://content.jovylle.com/data/fast-scores.json';
+        const HISTORY_URL = 'https://content.jovylle.com/api/scores?game=reaction&sort=recent&limit=200';
         let allRecords = [];
 
         function formatScore(record) {
@@ -443,9 +443,18 @@
                 const payload = await response.json();
                 const scores = Array.isArray(payload.scores) ? payload.scores : [];
 
-                // fast-scores.json is a flat, unsorted collection; reconstruct the
-                // "history, newest first" shape/aggregates history.json used to provide.
-                allRecords = [...scores].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                // /api/scores?sort=recent already returns newest-first, but the field
+                // names are snake_case; map them back to the shape this page expects,
+                // then reconstruct the "history, newest first" aggregates history.json
+                // used to provide.
+                const records = scores.map(score => ({
+                    ms: score.ms,
+                    playerName: score.player_name,
+                    playerId: score.player_id,
+                    timestamp: score.created_at,
+                    id: score.id
+                }));
+                allRecords = [...records].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
                 const reshapedPayload = {
                     records: allRecords,
                     total_records: allRecords.length,

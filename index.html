@@ -791,15 +791,23 @@
         initPlayerIdentity();
         
         // Shared leaderboard data source
-        const SCORES_URL = 'https://content.jovylle.com/data/fast-scores.json';
+        const SCORES_URL = 'https://content.jovylle.com/api/scores?game=reaction&sort=top&limit=10';
 
-        // content.jovylle.com serves the flat, unsorted scores collection, so
-        // reconstruct the pre-sorted/pre-sliced "top" list that top.json used to provide.
+        // content.jovylle.com's /api/scores already returns scores sorted
+        // fastest-first, but the field names are snake_case, so map them
+        // back to the shape this page's rendering code expects.
         async function fetchTopScores(limit = 10) {
             const response = await fetch(SCORES_URL);
             const payload = await response.json();
             const scores = Array.isArray(payload.scores) ? payload.scores : [];
-            return { top: [...scores].sort((a, b) => a.ms - b.ms).slice(0, limit) };
+            const top = scores.slice(0, limit).map(score => ({
+                ms: score.ms,
+                playerName: score.player_name,
+                playerId: score.player_id,
+                timestamp: score.created_at,
+                id: score.id
+            }));
+            return { top };
         }
 
         // Load home leaderboard function
@@ -1353,7 +1361,7 @@
         
         async function submitScore(time) {
             try {
-                const response = await fetch('/.netlify/functions/save-reaction-score', {
+                const response = await fetch('/api/save-reaction-score', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 

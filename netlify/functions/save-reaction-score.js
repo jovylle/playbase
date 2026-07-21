@@ -6,9 +6,9 @@ const crypto = require('crypto');
  * This function no longer commits directly to this repo. Instead:
  * 1. Validate incoming score data
  * 2. Generate a unique score record
- * 3. POST it to the static-encrypted-cms ingestion API (content.jovylle.com),
- *    which owns the live `fast-scores` collection
- * 4. Use the full merged leaderboard returned by that API to compute
+ * 3. POST it to content.jovylle.com's first-class `/api/scores` resource
+ *    (D1-backed), which owns all `reaction` game scores
+ * 4. Fetch the top-N leaderboard from that same API to compute
  *    isNewRecord/position for this score
  */
 
@@ -52,20 +52,27 @@ exports.handler = async (event, context) => {
       playerId: playerId || 'unknown'
     };
 
-    if (!process.env.CONTENT_INGEST_TOKEN) {
-      throw new Error('CONTENT_INGEST_TOKEN is not configured');
+    if (!process.env.CONTENT_ADMIN_PASSWORD) {
+      throw new Error('CONTENT_ADMIN_PASSWORD is not configured');
     }
 
-    // 2. Submit the score to the content API's fast-scores collection
+    const authHeader = `Basic ${Buffer.from(`admin:${process.env.CONTENT_ADMIN_PASSWORD}`).toString('base64')}`;
+
+    // 2. Submit the score to the content API's `reaction` scores
     const ingestResponse = await fetch(
-      `${CONTENT_API_BASE}/.netlify/functions/admin-json-file?collection=fast-scores`,
+      `${CONTENT_API_BASE}/api/scores`,
       {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${process.env.CONTENT_INGEST_TOKEN}`,
+          'Authorization': authHeader,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ collection: 'fast-scores', record: newScore })
+        body: JSON.stringify({
+          game: 'reaction',
+          ms,
+          playerName: newScore.playerName,
+          playerId: newScore.playerId
+        })
       }
     );
 
@@ -75,17 +82,32 @@ exports.handler = async (event, context) => {
       throw new Error(`Content API request failed: ${ingestResponse.status}`);
     }
 
-    const ingestResult = await ingestResponse.json();
-    const scores = Array.isArray(ingestResult.data?.scores) ? ingestResult.data.scores : [];
+    const inserted = await ingestResponse.json();
+    // Use the API's own generated record (id/created_at) as the source of truth.
+    newScore.id = inserted.id || id;
+    newScore.timestamp = inserted.created_at || timestamp;
+
+    // 3. Fetch the top-N leaderboard to compute isNewRecord/position
+    const topResponse = await fetch(
+      `${CONTENT_API_BASE}/api/scores?game=reaction&sort=top&limit=${TOP_N}`
+    );
+
+    if (!topResponse.ok) {
+      const errorBody = await topResponse.text();
+      console.error('Content API rejected top-scores fetch:', topResponse.status, errorBody);
+      throw new Error(`Content API request failed: ${topResponse.status}`);
+    }
+
+    const topResult = await topResponse.json();
+    const rankedTop = Array.isArray(topResult.scores) ? topResult.scores : [];
 
     // Rank against the top N fastest times, mirroring the old top.json
     // semantics: fastest overall is a new record, position is this score's
-    // 1-indexed rank within the top N once sorted ascending by ms.
-    const rankedTop = [...scores].sort((a, b) => a.ms - b.ms).slice(0, TOP_N);
+    // 1-indexed rank within the top N (already sorted ascending by ms).
     const isNewRecord = ms <= (rankedTop[0]?.ms ?? Infinity);
-    const position = rankedTop.findIndex(score => score.id === id) + 1;
+    const position = rankedTop.findIndex(score => score.id === newScore.id) + 1;
 
-    // 3. Return success response
+    // 4. Return success response
     return {
       statusCode: 200,
       headers: {
@@ -119,14 +141,14 @@ exports.handler = async (event, context) => {
 /**
  * Environment Variables Required:
  *
- * CONTENT_INGEST_TOKEN - Bearer token for content.jovylle.com's fast-scores
- *                        ingestion API (a `fast-scores`-scoped, commit-write
- *                        entry in that project's INGEST_TOKENS env var)
+ * CONTENT_ADMIN_PASSWORD - Password used to build the `Authorization: Basic`
+ *                          header (base64 of `admin:<password>`) for
+ *                          content.jovylle.com's POST /api/scores endpoint
  * CONTENT_API_BASE - Base URL of the content API (optional, defaults to
  *                    https://content.jovylle.com)
  *
  * Example .env:
- * CONTENT_INGEST_TOKEN=your-fast-scores-ingest-token
+ * CONTENT_ADMIN_PASSWORD=your-content-admin-password
  * CONTENT_API_BASE=https://content.jovylle.com
  */
 

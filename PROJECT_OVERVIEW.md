@@ -66,16 +66,13 @@ reaction/
 
 ### Backend (`netlify/functions/save-reaction-score.js`)
 - **Netlify serverless function** handles score submissions
-- **GitHub App JWT authentication** for secure API access
-- **Real-time JSON file updates** via GitHub Contents API
-- **Automatic git commits** with descriptive messages
-- **Top 10 leaderboard** maintenance with automatic sorting
+- **Basic auth** (`CONTENT_ADMIN_PASSWORD`) against content.jovylle.com's D1-backed API
+- **`POST`/`GET /api/scores`** on content.jovylle.com for score writes/reads (reaction game)
+- **Top 10 leaderboard** maintenance via `sort=top` query, computed live from the API
 
 ### Authentication System
-- **GitHub App** with Contents: Read/Write permissions
-- **JWT token generation** using RS256 algorithm
-- **PKCS#8 private key** format for enhanced security
-- **Installation-based access** to specific repository
+- **Basic auth** (`admin:${CONTENT_ADMIN_PASSWORD}`, base64-encoded) for score writes to content.jovylle.com
+- **GitHub App** (JWT, RS256, PKCS#8 key) still used for legacy games writing directly to this repo's Contents API
 
 ## 🚀 Key Features
 

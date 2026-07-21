@@ -20,8 +20,16 @@
       "type": "string",
       "pattern": "^[a-f0-9]{8}$",
       "description": "8-character hex ID for the score"
+    },
+    "playerName": {
+      "type": "string",
+      "description": "Display name of the player who submitted the score"
+    },
+    "playerId": {
+      "type": "string",
+      "description": "Anonymous fingerprint identifying the player"
     }
   },
-  "required": ["ms", "timestamp", "id"],
+  "required": ["ms", "timestamp", "id", "playerName", "playerId"],
   "additionalProperties": false
 }
