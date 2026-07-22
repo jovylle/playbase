@@ -5,6 +5,9 @@
   "name": "playbase",
   "main": "src/index.js",
   "compatibility_date": "2026-07-22",
+  "routes": [
+    { "pattern": "fast.jovylle.com", "custom_domain": true }
+  ],
   "assets": {
     "directory": ".",
     "binding": "ASSETS",
