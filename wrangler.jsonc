@@ -27,5 +27,16 @@
       "id": "2689a7cbfb6f4877a9ef505fff2aefce",
       "preview_id": "d8c1d67caf9741c1b6059dceb2e448aa"
     }
+  ],
+  // D1 binding to the SAME physical database content.jovylle.com uses (cms-db).
+  // Playbase reads/writes the shared `scores` table directly via `env.DB`
+  // (see insertScore/queryScores in src/index.js) — no HTTP proxy through
+  // content.jovylle.com anymore.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "cms-db",
+      "database_id": "8ba72fee-60b8-47b6-b4a8-db28722ead1a"
+    }
   ]
 }

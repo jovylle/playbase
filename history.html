@@ -317,7 +317,7 @@
             <div class="stat-card">
                 <div class="stat-label">Last Updated</div>
                 <div class="stat-value" id="lastUpdated">-</div>
-                <div class="stat-subtext">Source: content.jovylle.com API</div>
+                <div class="stat-subtext">Source: /api/scores</div>
             </div>
         </section>
 
@@ -364,7 +364,7 @@
         // future games (number-memory, etc.) reuse this same history page.
         const params = new URLSearchParams(window.location.search);
         const GAME = params.get('game') || 'reaction';
-        const HISTORY_URL = `https://content.jovylle.com/api/scores?game=${encodeURIComponent(GAME)}&sort=recent&limit=200`;
+        const HISTORY_URL = `/api/scores?game=${encodeURIComponent(GAME)}&sort=recent&limit=200`;
 
         document.getElementById('rawJsonLink').href = HISTORY_URL;
         if (GAME !== 'reaction') {
@@ -498,7 +498,7 @@
 
                 document.getElementById('footerNote').textContent =
                     allRecords.length > 0
-                        ? `${allRecords.length} saved runs loaded from content.jovylle.com.`
+                        ? `${allRecords.length} saved runs loaded.`
                         : 'History is live, but no scores have been saved yet.';
             } catch (error) {
                 console.error('Failed to load history:', error);

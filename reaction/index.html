@@ -891,9 +891,9 @@
         initPlayerIdentity();
         
         // Shared leaderboard data source
-        const SCORES_URL = 'https://content.jovylle.com/api/scores?game=reaction&sort=top&limit=10';
+        const SCORES_URL = '/api/scores?game=reaction&sort=top&limit=10';
 
-        // content.jovylle.com's /api/scores already returns scores sorted
+        // /api/scores already returns scores sorted
         // fastest-first, but the field names are snake_case, so map them
         // back to the shape this page's rendering code expects.
         async function fetchTopScores(limit = 10) {

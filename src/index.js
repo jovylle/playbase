@@ -6,17 +6,55 @@
  *   POST /api/save-number-memory-score  -> shared handleSaveScore (digits, higher-is-better)
  *   POST /api/save-chimp-test-score     -> shared handleSaveScore (gridSize, higher-is-better)
  *   POST /api/save-aim-trainer-score    -> shared handleSaveScore (avgMs, lower-is-better)
+ *   GET  /api/scores                    -> handleGetScores (public leaderboard/history read)
  *   everything else                     -> static assets (env.ASSETS)
  *
  * Only /api/* is routed to this Worker (see `run_worker_first` in
  * wrangler.jsonc); all other requests are served straight from static assets.
  *
+ * PERSISTENCE: scores are read from and written to a D1 database bound as
+ * `env.DB` (the shared `cms-db`, same physical DB content.jovylle.com uses),
+ * via the `insertScore`/`queryScores` helpers. There is no longer any runtime
+ * dependency on content.jovylle.com's HTTP API — the Worker owns the `/api/scores`
+ * read contract directly. The single `ms` INTEGER column is reused as the generic
+ * metric column for every game (reaction ms, number-memory digits, chimp-test
+ * gridSize, aim-trainer avgMs all live in `ms`); `shapeScore` echoes it back under
+ * each game's frontend-expected field name(s) on read.
+ *
  * NOTE: the old Netlify `debug-key` and `season-reset` functions were dead
  * code and were intentionally NOT ported during the Cloudflare migration.
  */
 
-const DEFAULT_CONTENT_API_BASE = 'https://content.jovylle.com';
 const TOP_N = 10;
+// Default page size for GET /api/scores when `limit` is missing/invalid.
+const DEFAULT_SCORES_LIMIT = 10;
+// Hard cap on GET /api/scores `limit` to bound query cost.
+const MAX_SCORES_LIMIT = 1000;
+
+// The set of games this Worker persists scores for. Used to validate the
+// `game` query param on GET /api/scores.
+const KNOWN_GAMES = new Set([
+  'reaction',
+  'number-memory',
+  'chimp-test',
+  'aim-trainer'
+]);
+
+// The single `ms` INTEGER column in `scores` is reused as the generic metric
+// column for every game. Each game's frontend (and, for some, the internal
+// isNewRecord comparator) reads the value under a different field name, so
+// `shapeScore` echoes `ms` back under these alias(es) per game:
+//   - reaction     -> none (reads raw `ms`)
+//   - number-memory-> `digits`   (frontend + comparator)
+//   - chimp-test   -> `gridSize` (comparator) AND `grid_size` (frontend);
+//                     both are emitted because they diverge
+//   - aim-trainer  -> `avgMs`    (frontend + comparator)
+const SCORE_METRIC_ALIASES = {
+  reaction: [],
+  'number-memory': ['digits'],
+  'chimp-test': ['gridSize', 'grid_size'],
+  'aim-trainer': ['avgMs']
+};
 // Reaction-only: sample size used to compute the percentile field. Large
 // enough to be a meaningful percentile estimate without fetching the entire
 // leaderboard on every submission.
@@ -56,23 +94,26 @@ export default {
       return handleSaveScore(request, env, AIM_TRAINER_CONFIG);
     }
 
+    if (url.pathname === '/api/scores') {
+      return handleGetScores(request, env);
+    }
+
     // Not an API route -> fall through to static assets.
     return env.ASSETS.fetch(request);
   }
 };
 
 /**
- * Validate a reaction-time score, forward it to content.jovylle.com's
- * D1-backed /api/scores resource, then read back the top-N leaderboard to
- * compute isNewRecord / position. Mirrors the previous Netlify function's
- * behavior, status codes, and response shape exactly.
+ * Validate a reaction-time score, persist it to the D1 `scores` table
+ * (`env.DB`), then read back the leaderboard sample to compute
+ * isNewRecord / position / percentile. Behavior, status codes, and response
+ * shape match the previous HTTP-proxy implementation exactly; only the
+ * persistence layer changed (D1 insert/query instead of content-API POST/GET).
  */
 async function handleSaveReactionScore(request, env) {
   if (request.method !== 'POST') {
     return json(405, { error: 'Method not allowed' });
   }
-
-  const contentApiBase = env.CONTENT_API_BASE || DEFAULT_CONTENT_API_BASE;
 
   try {
     const { ms, playerName, playerId } = await request.json();
@@ -110,8 +151,8 @@ async function handleSaveReactionScore(request, env) {
     }
 
     const timestamp = new Date().toISOString();
-    // The sibling API's schema strictly requires ^[a-f0-9]{8}$. Web Crypto's
-    // getRandomValues over 4 bytes always yields exactly 8 lowercase hex chars.
+    // Primary key for the `scores` row. Web Crypto's getRandomValues over 4
+    // bytes always yields exactly 8 lowercase hex chars (^[a-f0-9]{8}$).
     const id = randomHex8();
 
     const newScore = {
@@ -122,56 +163,27 @@ async function handleSaveReactionScore(request, env) {
       playerId: finalId
     };
 
-    if (!env.CONTENT_ADMIN_PASSWORD) {
-      throw new Error('CONTENT_ADMIN_PASSWORD is not configured');
-    }
-
-    // btoa is the Workers-native base64 encoder (Node's Buffer isn't available
-    // by default in Workers).
-    const authHeader = `Basic ${btoa(`admin:${env.CONTENT_ADMIN_PASSWORD}`)}`;
-
-    // 1. Submit the score to the content API's `reaction` scores.
-    const ingestResponse = await fetch(`${contentApiBase}/api/scores`, {
-      method: 'POST',
-      headers: {
-        Authorization: authHeader,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        game: 'reaction',
-        ms,
-        playerName: newScore.playerName,
-        playerId: newScore.playerId
-      })
+    // 1. Persist the score to the D1 `scores` table (ms is the generic metric
+    // column). The id/timestamp we generated above are the source of truth.
+    await insertScore(env, {
+      id,
+      game: 'reaction',
+      ms,
+      playerName: finalName,
+      playerId: finalId,
+      createdAt: timestamp
     });
 
-    if (!ingestResponse.ok) {
-      const errorBody = await ingestResponse.text();
-      console.error('Content API rejected score:', ingestResponse.status, errorBody);
-      throw new Error(`Content API request failed: ${ingestResponse.status}`);
-    }
-
-    const inserted = await ingestResponse.json();
-    // Use the API's own generated record (id/created_at) as source of truth.
-    newScore.id = inserted.id || id;
-    newScore.timestamp = inserted.created_at || timestamp;
-
-    // 2. Fetch a large sample of the leaderboard (sorted best-first, i.e.
-    // ascending ms) to compute isNewRecord/position, and — reaction-only —
-    // a percentile. A single larger fetch covers both the top-N view and the
-    // percentile sample, avoiding a second round-trip.
-    const topResponse = await fetch(
-      `${contentApiBase}/api/scores?game=reaction&sort=top&limit=${PERCENTILE_SAMPLE_SIZE}`
-    );
-
-    if (!topResponse.ok) {
-      const errorBody = await topResponse.text();
-      console.error('Content API rejected top-scores fetch:', topResponse.status, errorBody);
-      throw new Error(`Content API request failed: ${topResponse.status}`);
-    }
-
-    const topResult = await topResponse.json();
-    const rankedTop = Array.isArray(topResult.scores) ? topResult.scores : [];
+    // 2. Read back a large sample of the leaderboard (sorted best-first, i.e.
+    // ascending ms — lower is better for reaction) to compute
+    // isNewRecord/position, and — reaction-only — a percentile. A single
+    // larger read covers both the top-N view and the percentile sample.
+    const rankedTop = await queryScores(env, {
+      game: 'reaction',
+      sort: 'top',
+      direction: 'asc',
+      limit: PERCENTILE_SAMPLE_SIZE
+    });
 
     // Fastest overall is a new record; position is this score's 1-indexed rank
     // within the sampled leaderboard (already sorted ascending by ms).
@@ -220,7 +232,10 @@ const NUMBER_MEMORY_CONFIG = {
       ? 'Invalid digit count. Must be an integer between 1-20.'
       : null,
   isNewRecord: (digits, topScore) => digits >= (topScore?.digits ?? -Infinity),
-  formatMessage: (digits) => `${digits} digits`
+  formatMessage: (digits) => `${digits} digits`,
+  // Higher digit count is better -> `sort=top` orders ms (the metric column)
+  // descending. Mirrors the direction encoded in the isNewRecord comparator.
+  BETTER_DIRECTION: 'desc'
 };
 
 const CHIMP_TEST_CONFIG = {
@@ -231,7 +246,9 @@ const CHIMP_TEST_CONFIG = {
       ? 'Invalid grid size. Must be an integer between 4-35.'
       : null,
   isNewRecord: (gridSize, topScore) => gridSize >= (topScore?.gridSize ?? -Infinity),
-  formatMessage: (gridSize) => `grid size ${gridSize}`
+  formatMessage: (gridSize) => `grid size ${gridSize}`,
+  // Higher grid size is better -> `sort=top` orders ms descending.
+  BETTER_DIRECTION: 'desc'
 };
 
 const AIM_TRAINER_CONFIG = {
@@ -242,14 +259,31 @@ const AIM_TRAINER_CONFIG = {
       ? 'Invalid average time. Must be an integer between 100-3000ms.'
       : null,
   isNewRecord: (avgMs, topScore) => avgMs <= (topScore?.avgMs ?? Infinity),
-  formatMessage: (avgMs) => `${avgMs}ms average`
+  formatMessage: (avgMs) => `${avgMs}ms average`,
+  // Lower average time is better -> `sort=top` orders ms ascending.
+  BETTER_DIRECTION: 'asc'
 };
+
+// Map of game name -> its config, for looking up BETTER_DIRECTION from routes
+// that don't already hold a config (e.g. handleGetScores). reaction has no
+// config object; its direction is a literal 'asc' (lower ms is better).
+const GAME_CONFIGS = {
+  'number-memory': NUMBER_MEMORY_CONFIG,
+  'chimp-test': CHIMP_TEST_CONFIG,
+  'aim-trainer': AIM_TRAINER_CONFIG
+};
+
+/** Best-first sort direction on the `ms` metric column for a given game. */
+function directionForGame(game) {
+  if (game === 'reaction') return 'asc';
+  return GAME_CONFIGS[game]?.BETTER_DIRECTION || 'asc';
+}
 
 /**
  * Shared /api/save-<game>-score handler for the newer games (number-memory,
  * chimp-test, aim-trainer). Follows `handleSaveReactionScore`'s exact
- * structure: validate metric -> sanitize name/id -> rate-limit -> POST to
- * content API -> GET top-N -> compute isNewRecord/position -> respond.
+ * structure: validate metric -> sanitize name/id -> rate-limit -> insert to
+ * D1 -> query top-N from D1 -> compute isNewRecord/position -> respond.
  * `config` supplies the game-specific bits (see the *_CONFIG objects above).
  */
 async function handleSaveScore(request, env, config) {
@@ -257,9 +291,14 @@ async function handleSaveScore(request, env, config) {
     return json(405, { error: 'Method not allowed' });
   }
 
-  const contentApiBase = env.CONTENT_API_BASE || DEFAULT_CONTENT_API_BASE;
-  const { game, metricName, validateMetric, isNewRecord: computeIsNewRecord, formatMessage } =
-    config;
+  const {
+    game,
+    metricName,
+    validateMetric,
+    isNewRecord: computeIsNewRecord,
+    formatMessage,
+    BETTER_DIRECTION
+  } = config;
 
   try {
     const body = await request.json();
@@ -298,8 +337,8 @@ async function handleSaveScore(request, env, config) {
     }
 
     const timestamp = new Date().toISOString();
-    // The sibling API's schema strictly requires ^[a-f0-9]{8}$. Web Crypto's
-    // getRandomValues over 4 bytes always yields exactly 8 lowercase hex chars.
+    // Primary key for the `scores` row. Web Crypto's getRandomValues over 4
+    // bytes always yields exactly 8 lowercase hex chars (^[a-f0-9]{8}$).
     const id = randomHex8();
 
     const newScore = {
@@ -310,56 +349,30 @@ async function handleSaveScore(request, env, config) {
       playerId: finalId
     };
 
-    if (!env.CONTENT_ADMIN_PASSWORD) {
-      throw new Error('CONTENT_ADMIN_PASSWORD is not configured');
-    }
-
-    // btoa is the Workers-native base64 encoder (Node's Buffer isn't available
-    // by default in Workers).
-    const authHeader = `Basic ${btoa(`admin:${env.CONTENT_ADMIN_PASSWORD}`)}`;
-
-    // 1. Submit the score to the content API's `<game>` scores.
-    const ingestResponse = await fetch(`${contentApiBase}/api/scores`, {
-      method: 'POST',
-      headers: {
-        Authorization: authHeader,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        game,
-        [metricName]: metricValue,
-        playerName: newScore.playerName,
-        playerId: newScore.playerId
-      })
+    // 1. Persist the score to the D1 `scores` table. The metric value lives in
+    // the generic `ms` column; the id/timestamp we generated are source of truth.
+    await insertScore(env, {
+      id,
+      game,
+      ms: metricValue,
+      playerName: finalName,
+      playerId: finalId,
+      createdAt: timestamp
     });
 
-    if (!ingestResponse.ok) {
-      const errorBody = await ingestResponse.text();
-      console.error('Content API rejected score:', ingestResponse.status, errorBody);
-      throw new Error(`Content API request failed: ${ingestResponse.status}`);
-    }
+    // 2. Read back the top-N leaderboard (best-first per this game's direction)
+    // to compute isNewRecord/position.
+    const rankedTop = await queryScores(env, {
+      game,
+      sort: 'top',
+      direction: BETTER_DIRECTION,
+      limit: TOP_N
+    });
 
-    const inserted = await ingestResponse.json();
-    // Use the API's own generated record (id/created_at) as source of truth.
-    newScore.id = inserted.id || id;
-    newScore.timestamp = inserted.created_at || timestamp;
-
-    // 2. Fetch the top-N leaderboard to compute isNewRecord/position.
-    const topResponse = await fetch(
-      `${contentApiBase}/api/scores?game=${game}&sort=top&limit=${TOP_N}`
-    );
-
-    if (!topResponse.ok) {
-      const errorBody = await topResponse.text();
-      console.error('Content API rejected top-scores fetch:', topResponse.status, errorBody);
-      throw new Error(`Content API request failed: ${topResponse.status}`);
-    }
-
-    const topResult = await topResponse.json();
-    const rankedTop = Array.isArray(topResult.scores) ? topResult.scores : [];
-
-    // `sort=top` is assumed metric-agnostic: always "best first" for whatever
-    // game is queried, mirroring reaction's ascending-by-ms contract.
+    // `sort=top` is metric-agnostic: always "best first" for whatever game is
+    // queried (per BETTER_DIRECTION), mirroring reaction's ascending-by-ms
+    // contract. `shapeScore` echoes `ms` under this game's expected alias, so
+    // the comparator's `topScore?.<metric>` read resolves correctly.
     const isNewRecord = computeIsNewRecord(metricValue, rankedTop[0]);
     const position = rankedTop.findIndex((score) => score.id === newScore.id) + 1;
 
@@ -379,6 +392,115 @@ async function handleSaveScore(request, env, config) {
     // Do not leak internal error details (KV, upstream API, config) to clients.
     return json(500, { error: 'Failed to save score' });
   }
+}
+
+/**
+ * Public read endpoint: GET /api/scores?game=<name>&sort=top|recent&limit=<n>.
+ *
+ * Serves the leaderboard/history directly from D1 (no content.jovylle.com
+ * dependency). `game` must be one of KNOWN_GAMES (400 otherwise). `sort`
+ * defaults to `top` and must be `top` or `recent` (400 otherwise). `limit`
+ * defaults to DEFAULT_SCORES_LIMIT, is clamped to [1, MAX_SCORES_LIMIT], and
+ * falls back to the default for missing/non-numeric input. For `sort=top`, the
+ * best-first direction is resolved per game; `sort=recent` is always newest-first.
+ * Each returned score is shaped via `shapeScore` (raw `ms` plus per-game aliases).
+ */
+async function handleGetScores(request, env) {
+  if (request.method !== 'GET') {
+    return json(405, { error: 'Method not allowed' });
+  }
+
+  try {
+    const url = new URL(request.url);
+
+    const game = url.searchParams.get('game');
+    if (!game || !KNOWN_GAMES.has(game)) {
+      return json(400, { error: 'Invalid or missing game parameter.' });
+    }
+
+    const sort = url.searchParams.get('sort') || 'top';
+    if (sort !== 'top' && sort !== 'recent') {
+      return json(400, { error: 'Invalid sort parameter. Must be "top" or "recent".' });
+    }
+
+    const parsedLimit = parseInt(url.searchParams.get('limit'), 10);
+    let limit = Number.isFinite(parsedLimit) ? parsedLimit : DEFAULT_SCORES_LIMIT;
+    if (limit < 1) limit = 1;
+    if (limit > MAX_SCORES_LIMIT) limit = MAX_SCORES_LIMIT;
+
+    const direction = sort === 'top' ? directionForGame(game) : 'asc';
+    const scores = await queryScores(env, { game, sort, direction, limit });
+
+    return json(200, { scores });
+  } catch (error) {
+    console.error('Function error:', error);
+    // Do not leak internal error details (D1, config) to clients.
+    return json(500, { error: 'Failed to fetch scores' });
+  }
+}
+
+/**
+ * Shape a raw D1 `scores` row for consumption by frontends and the internal
+ * isNewRecord comparators. Returns the row's canonical fields plus per-game
+ * aliases of the generic `ms` metric column (see SCORE_METRIC_ALIASES).
+ *
+ * @param {string} game
+ * @param {{ id: string, game?: string, ms: number, player_name: string, player_id: string, created_at: string }} row
+ */
+function shapeScore(game, row) {
+  const shaped = {
+    id: row.id,
+    game: row.game ?? game,
+    ms: row.ms,
+    player_name: row.player_name,
+    player_id: row.player_id,
+    created_at: row.created_at
+  };
+  for (const alias of SCORE_METRIC_ALIASES[game] || []) {
+    shaped[alias] = row.ms;
+  }
+  return shaped;
+}
+
+/**
+ * Insert one score row into the shared D1 `scores` table. The metric value is
+ * stored in the generic `ms` INTEGER column (CHECK ms > 0 — all game metrics
+ * are positive integers, enforced by each route's validation).
+ */
+async function insertScore(env, { id, game, ms, playerName, playerId, createdAt }) {
+  await env.DB
+    .prepare(
+      'INSERT INTO scores (id, game, ms, player_name, player_id, created_at) VALUES (?, ?, ?, ?, ?, ?)'
+    )
+    .bind(id, game, ms, playerName, playerId, createdAt)
+    .run();
+}
+
+/**
+ * Query scores for a game from D1, returning rows shaped via `shapeScore`.
+ *
+ * `sort=recent` orders by created_at DESC (newest-first). `sort=top` orders by
+ * the `ms` metric column, best-first per `direction` ('asc' = lower is better,
+ * 'desc' = higher is better). ORDER BY direction can't be parameter-bound in
+ * D1, so it's selected from a fixed set of literal SQL strings (never from user
+ * input) to keep the query injection-safe. `game` and `limit` are param-bound.
+ */
+async function queryScores(env, { game, sort, direction, limit }) {
+  let orderBy;
+  if (sort === 'recent') {
+    orderBy = 'created_at DESC';
+  } else {
+    orderBy = direction === 'desc' ? 'ms DESC' : 'ms ASC';
+  }
+
+  const { results } = await env.DB
+    .prepare(
+      `SELECT id, game, ms, player_name, player_id, created_at FROM scores WHERE game = ? ORDER BY ${orderBy} LIMIT ?`
+    )
+    .bind(game, limit)
+    .all();
+
+  return (results || []).map((row) => shapeScore(game, row));
 }
 
 /**

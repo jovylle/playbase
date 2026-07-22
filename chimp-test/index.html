@@ -811,9 +811,9 @@
         initPlayerIdentity();
 
         // ---- Leaderboard data source ----
-        const SCORES_URL = 'https://content.jovylle.com/api/scores?game=chimp-test&sort=top&limit=10';
+        const SCORES_URL = '/api/scores?game=chimp-test&sort=top&limit=10';
 
-        // content.jovylle.com's /api/scores is expected to return chimp-test
+        // /api/scores is expected to return chimp-test
         // rows with a snake_case `grid_size` field (mirroring how the reaction
         // route returns `player_name`/`created_at`), sorted highest-first.
         async function fetchTopScores(limit = 10) {
