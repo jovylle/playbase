@@ -1,0 +1,27 @@
+{
+  // Cloudflare Workers + Static Assets config for Playbase.
+  // Static files (index.html, history.html, reaction/*.json, image.png) are
+  // served directly from the repo root; only /api/* hits the Worker.
+  "name": "playbase",
+  "main": "src/index.js",
+  "compatibility_date": "2026-07-22",
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    // Routes matching these patterns invoke the Worker first; everything else
+    // falls through to the static-asset server.
+    "run_worker_first": ["/api/*"]
+  },
+  // KV namespace backing the per-player / per-IP score-submission rate limiter
+  // (see checkRateLimit in src/index.js). Shared across all /api/save-*-score
+  // routes. Created via: wrangler kv namespace create SCORE_RATE_LIMIT
+  // (and the --preview variant for local dev).
+  "kv_namespaces": [
+    {
+      "binding": "SCORE_RATE_LIMIT",
+      "id": "2689a7cbfb6f4877a9ef505fff2aefce",
+      "preview_id": "d8c1d67caf9741c1b6059dceb2e448aa"
+    }
+  ]
+}

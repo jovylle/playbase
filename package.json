@@ -2,11 +2,11 @@
   "name": "playbase",
   "version": "1.0.0",
   "description": "GitHub-based JSON database for public game data",
-  "main": "examples/netlify-function.js",
+  "main": "src/index.js",
   "scripts": {
-    "test": "node examples/test-github-app.js",
     "validate": "ajv validate -s schemas/reaction.schema.json -d 'reaction/*.json'",
-    "dev": "netlify dev"
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
   },
   "repository": {
     "type": "git",
@@ -18,7 +18,7 @@
     "database",
     "games",
     "serverless",
-    "netlify",
+    "cloudflare-workers",
     "badges"
   ],
   "author": "jovylle",
@@ -27,13 +27,9 @@
     "url": "https://github.com/jovylle/playbase/issues"
   },
   "homepage": "https://github.com/jovylle/playbase#readme",
-  "dependencies": {
-    "@octokit/rest": "^22.0.0",
-    "jsonwebtoken": "^9.0.2"
-  },
   "devDependencies": {
     "ajv-cli": "^5.0.0",
-    "netlify-cli": "^17.0.0"
+    "wrangler": "^4.113.0"
   },
   "engines": {
     "node": ">=18.0.0"

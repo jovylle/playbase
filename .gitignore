@@ -84,8 +84,6 @@ Thumbs.db
 *.swp
 *.swo
 
-# Netlify
-.netlify/
-
-# Local Netlify folder
-.netlify
+# Cloudflare Wrangler local state
+.wrangler/
+.dev.vars

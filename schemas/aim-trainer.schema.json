@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/jovylle/playbase/schemas/aim-trainer.schema.json",
+  "title": "Aim Trainer Score",
+  "description": "Schema for aim trainer game scores",
+  "type": "object",
+  "properties": {
+    "avgMs": {
+      "type": "integer",
+      "minimum": 100,
+      "maximum": 3000,
+      "description": "Average milliseconds per target across the run (total elapsed time across 30 targets divided by 30). Lower avgMs is better, same sort direction as reaction's ms."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when the score was achieved"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{8}$",
+      "description": "8-character hex ID for the score"
+    },
+    "playerName": {
+      "type": "string",
+      "description": "Display name of the player who submitted the score"
+    },
+    "playerId": {
+      "type": "string",
+      "description": "Anonymous fingerprint identifying the player"
+    }
+  },
+  "required": ["avgMs", "timestamp", "id", "playerName", "playerId"],
+  "additionalProperties": false
+}

@@ -1,113 +1,85 @@
-# Deployment Examples
+# Deployment Guide
 
-## 🚀 Netlify Deployment
+> This project used to deploy to Netlify Functions; it now deploys to
+> Cloudflare Workers + Static Assets via `wrangler`. This guide reflects the
+> current setup.
 
-### Option 1: Git Integration (Recommended)
+## 🚀 Cloudflare Workers Deployment
 
-1. **Push to GitHub**
-   ```bash
-   git add .
-   git commit -m "feat: initial playbase setup"
-   git push origin main
-   ```
+### Option 1: GitHub Actions Auto-Deploy (Recommended)
 
-2. **Connect to Netlify**
-   - Go to [netlify.com](https://netlify.com)
-   - Click "Add new site" → "Import an existing project"
-   - Connect your GitHub account
-   - Select your `playbase` repository
-   - Build settings: (leave defaults for static site)
-   - Click "Deploy site"
+Every push to `master` triggers `.github/workflows/deploy.yml`, which runs
+`wrangler deploy` for you. This requires two repo secrets:
 
-3. **Add Environment Variables**
-   - Go to Site settings → Environment variables
-   - Add your GitHub App credentials:
-     ```
-     GITHUB_APP_ID=123456
-     GITHUB_INSTALLATION_ID=789012
-     GITHUB_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n..."
-     ```
+- `CLOUDFLARE_API_TOKEN` — a token with Workers Scripts edit permission
+- `CLOUDFLARE_ACCOUNT_ID` — only strictly required if the token has access to
+  more than one account, but safe to set either way
 
-### Option 2: Netlify CLI
+Set them under **Settings → Secrets and variables → Actions** in GitHub. Once
+set, just `git push origin master` and the deploy happens automatically.
+
+### Option 2: Manual Deploy with Wrangler CLI
 
 ```bash
-# Install Netlify CLI
-npm install -g netlify-cli
+# Install dependencies (installs wrangler as a devDependency)
+npm install
 
-# Login to Netlify
-netlify login
+# Authenticate wrangler with your Cloudflare account (one-time)
+npx wrangler login
 
-# Initialize in your project
-netlify init
+# Local dev server (runs the Worker + serves static assets)
+npm run dev   # wrangler dev
 
 # Deploy
-netlify deploy --prod
+npm run deploy   # wrangler deploy
 ```
 
-### Function Setup
+### Set the Required Secret
 
-Create `netlify/functions/save-reaction-score.js`:
-```javascript
-// Copy the content from examples/netlify-function.js
-```
-
-Your function will be available at:
-```
-https://fast.jovylle.com/.netlify/functions/save-reaction-score
-```
-
-## ▲ Vercel Deployment
-
-### Option 1: Vercel CLI
+The `/api/save-reaction-score` route authenticates to `content.jovylle.com`
+with Basic auth. Set the password as a Worker secret (never commit it):
 
 ```bash
-# Install Vercel CLI
-npm install -g vercel
-
-# Deploy
-vercel
-
-# Set environment variables
-vercel env add GITHUB_APP_ID
-vercel env add GITHUB_INSTALLATION_ID
-vercel env add GITHUB_PRIVATE_KEY
-
-# Redeploy with env vars
-vercel --prod
+wrangler secret put CONTENT_ADMIN_PASSWORD
 ```
 
-### Option 2: Git Integration
+`CONTENT_API_BASE` is an optional plain var (defaults to
+`https://content.jovylle.com`) and can live under `vars` in `wrangler.jsonc`
+if you ever need to override it.
 
-1. **Push to GitHub** (same as Netlify)
-2. **Import to Vercel**
-   - Go to [vercel.com](https://vercel.com)
-   - Click "Add New" → "Project"
-   - Import your GitHub repository
-3. **Add Environment Variables** in project settings
+### Worker + Assets Layout
 
-### API Routes Setup
-
-Create `api/save-reaction-score.js`:
-```javascript
-// Copy the content from examples/netlify-function.js
-// Remove the exports.handler wrapper and export as default
-export default async function handler(req, res) {
-  // Function logic here...
-}
-```
+- `wrangler.jsonc` — configures `assets.directory: "."` (serves the repo root
+  as static assets) and `run_worker_first: ["/api/*"]` so `/api/*` requests
+  hit the Worker instead of the static asset handler.
+- `.assetsignore` — excludes source/config/docs from being served as static
+  files, while keeping `index.html`, `history.html`, `image.png`, and
+  `reaction/*.json` servable.
+- `src/index.js` — the Worker's `fetch` handler. `POST /api/save-reaction-score`
+  is handled directly; everything else falls through to `env.ASSETS.fetch`.
 
 ## 🧪 Testing Your Deployment
 
-### Test the Function Endpoint
+### Test the API Endpoint
 
 ```bash
 # Test with curl
-curl -X POST https://fast.jovylle.com/.netlify/functions/save-reaction-score \
+curl -X POST https://fast.jovylle.com/api/save-reaction-score \
   -H "Content-Type: application/json" \
-  -d '{"ms": 200}'
+  -d '{"ms": 200, "playerName": "test", "playerId": "fingerprint_abc"}'
 
 # Expected response:
-# {"success":true,"score":{"ms":200,"timestamp":"...","id":"..."},"message":"Nice! Ranked #X with 200ms"}
+# {"success":true,"score":{"ms":200,"timestamp":"...","id":"...","playerName":"test","playerId":"fingerprint_abc"},"isNewRecord":false,"position":X,"message":"..."}
+```
+
+### Test Locally First
+
+```bash
+npm run dev
+# then, in another terminal:
+curl -X POST http://localhost:8787/api/save-reaction-score \
+  -H "Content-Type: application/json" \
+  -d '{"ms": 200, "playerName": "test", "playerId": "fingerprint_abc"}'
 ```
 
 ### Test with JavaScript
@@ -124,12 +96,16 @@ curl -X POST https://fast.jovylle.com/.netlify/functions/save-reaction-score \
 
     <script>
     async function testSubmit() {
-        const response = await fetch('/.netlify/functions/save-reaction-score', {
+        const response = await fetch('/api/save-reaction-score', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ms: Math.floor(Math.random() * 200) + 100 })
+            body: JSON.stringify({
+                ms: Math.floor(Math.random() * 200) + 100,
+                playerName: 'test',
+                playerId: 'fingerprint_abc'
+            })
         });
-        
+
         const result = await response.json();
         document.getElementById('result').innerHTML = JSON.stringify(result, null, 2);
     }
@@ -140,45 +116,47 @@ curl -X POST https://fast.jovylle.com/.netlify/functions/save-reaction-score \
 
 ## 📊 Verify Data Updates
 
-After a successful submission, check your GitHub repository:
+After a successful submission, check the scores API directly:
 
-1. **Latest Score**: `https://raw.githubusercontent.com/your-username/playbase/main/reaction/latest.json`
-2. **Top Scores**: `https://raw.githubusercontent.com/your-username/playbase/main/reaction/top.json`
-3. **Commit History**: Check your repo's commit history for automatic updates
+```bash
+curl "https://content.jovylle.com/api/scores?game=reaction&sort=top&limit=10"
+```
+
+Legacy game data that still uses the GitHub-Contents pattern (see
+`examples/github-app-setup.md`) can still be checked via commit history and
+raw GitHub URLs, e.g. `https://raw.githubusercontent.com/jovylle/playbase/main/<game>/latest.json`.
 
 ## 🐛 Common Issues
 
 ### CORS Errors
-Add CORS headers to your function:
+Make sure `src/index.js` sets CORS headers on the API response:
 ```javascript
-return {
-  statusCode: 200,
+return new Response(JSON.stringify(result), {
+  status: 200,
   headers: {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS'
-  },
-  body: JSON.stringify(result)
-};
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*'
+  }
+});
 ```
 
-### Environment Variable Issues
-- Make sure variables are set in your deployment platform
-- Check for extra quotes or spaces
-- Verify the private key format (include BEGIN/END lines)
+### Secret / Env Variable Issues
+- Confirm the secret is set: `wrangler secret list` (shows names only, not values)
+- Re-run `wrangler secret put CONTENT_ADMIN_PASSWORD` if it's missing or wrong
+- Plain vars (like `CONTENT_API_BASE`) live in `wrangler.jsonc` under `vars`, not as secrets
 
-### GitHub API Rate Limits
-- Primary rate limit: 5,000 requests per hour
-- Secondary rate limit: ~12 requests per minute for writes
-- Add retry logic with exponential backoff if needed
+### Deploy Failures in GitHub Actions
+- Verify `CLOUDFLARE_API_TOKEN` has Workers Scripts edit permission
+- Verify `CLOUDFLARE_ACCOUNT_ID` matches the account the token belongs to
+- Check the Actions log for the exact `wrangler deploy` error
 
 ## 🔄 Continuous Deployment
 
-Both Netlify and Vercel automatically redeploy when you push to your main branch. This means:
+Every push to `master` runs `.github/workflows/deploy.yml`, which:
 
-1. **Update your code** locally
-2. **Push to GitHub**
-3. **Automatic deployment** happens
-4. **Test the new version**
+1. Checks out the repo
+2. Installs dependencies (`npm ci`)
+3. Runs `wrangler deploy` via `cloudflare/wrangler-action@v3`
 
-Your playbase JSON database is now live and ready to accept game scores! 🎮
+No manual step is needed after merging to `master` — the Worker and its
+static assets redeploy automatically.

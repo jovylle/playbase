@@ -32,8 +32,10 @@ playbase/
 │   └── history.ndjson       # Complete history (newline-delimited JSON)
 ├── schemas/                 # JSON schemas for validation
 │   └── reaction.schema.json # Reaction score schema
-├── examples/                # Example implementations
-│   └── netlify-function.js  # Sample serverless function
+├── src/
+│   └── index.js              # Cloudflare Worker (handles /api/* routes, e.g. save-reaction-score)
+├── examples/                # Example implementations (legacy GitHub-Contents pattern)
+│   └── netlify-function.js  # Legacy sample serverless function (see header note)
 ├── VERSION                  # Current API version
 └── README.md               # This file
 ```
@@ -86,8 +88,12 @@ GITHUB_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
 
 ### 3. Serverless Function Example
 
+> Note: this shows the legacy GitHub-Contents pattern. Current reaction-score
+> writes go through the Cloudflare Worker at `src/index.js`, which posts to
+> `content.jovylle.com/api/scores` instead of committing JSON back to this repo.
+
 ```javascript
-// Netlify Function example
+// Cloudflare Worker example (legacy Netlify Function shown for reference)
 const jwt = require('jsonwebtoken');
 
 exports.handler = async (event) => {

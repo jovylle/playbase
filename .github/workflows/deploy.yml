@@ -1,0 +1,33 @@
+name: Deploy to Cloudflare Workers
+
+# Mirrors the previous Netlify auto-deploy-on-push behaviour: every push to
+# master publishes the Worker (and its static assets) via `wrangler deploy`.
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          # CLOUDFLARE_ACCOUNT_ID is only required if the token has access to
+          # more than one account; kept here so a single-account token still
+          # works and multi-account tokens resolve unambiguously.
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy

@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/jovylle/playbase/schemas/chimp-test.schema.json",
+  "title": "Chimp Test Score",
+  "description": "Schema for chimp test (numbered-tile ascending recall) game scores. HIGHER gridSize is better — sort leaderboards descending by gridSize.",
+  "type": "object",
+  "properties": {
+    "gridSize": {
+      "type": "integer",
+      "minimum": 4,
+      "maximum": 35,
+      "description": "Highest grid size (tile count) completed in ascending-order recall. Higher is better."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when the score was achieved"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{8}$",
+      "description": "8-character hex ID for the score"
+    },
+    "playerName": {
+      "type": "string",
+      "description": "Display name of the player who submitted the score"
+    },
+    "playerId": {
+      "type": "string",
+      "description": "Anonymous fingerprint identifying the player"
+    }
+  },
+  "required": ["gridSize", "timestamp", "id", "playerName", "playerId"],
+  "additionalProperties": false
+}

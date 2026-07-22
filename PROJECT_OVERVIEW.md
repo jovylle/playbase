@@ -1,25 +1,26 @@
-# 🎮 Playbase - GitHub JSON Database Game Platform
+# 🎮 Playbase - Mini-Game Hub
 
 ## 🎯 Project Goal
 
-**Playbase** is a proof-of-concept for using **GitHub as a JSON database** for storing game scores publicly. It demonstrates how to build a real-time game leaderboard system using GitHub's API as the backend, Netlify serverless functions as middleware, and a lightning-fast vanilla JavaScript frontend.
+**Playbase** is a mini-game platform: a lightweight hub linking to 4 browser mini-games, each with a public, real-time leaderboard backed by `content.jovylle.com`'s D1-backed `/api/scores` API, fronted by a Cloudflare Worker, and served as vanilla-JS Cloudflare static assets.
 
 ## 🏗️ Core Concept
 
-Instead of traditional databases (PostgreSQL, MongoDB, etc.), this project uses:
-- **GitHub repository** as the database storage
-- **JSON files** as data tables
-- **GitHub App** for authenticated API access
-- **Serverless functions** as the API layer
-- **Public repository** for transparent, open data
+- **Hub + per-game folders** — root `index.html` is a card-grid hub; each game lives in its own folder as a single self-contained HTML file (no shared design system across pages, by design)
+- **`content.jovylle.com` D1 API** as the score database for all games (current architecture — GitHub-Contents-as-database is legacy, kept only for a few unread JSON files)
+- **Cloudflare Worker** (`src/index.js`) as the only backend surface, handling `/api/save-<game>-score` writes and read-through leaderboard queries
+- **Cloudflare KV** for lightweight, game-agnostic rate-limiting shared across every game's score-submission route
 
-## 🔥 Current Implementation: Reaction Tester
+## 🔥 Current Implementation: 4 Games
 
-The first game implemented is a **reaction speed tester** where players:
-1. Wait for a screen to turn red
-2. Click as fast as possible
-3. Get their reaction time in milliseconds
-4. Compete on a public leaderboard
+| Game | Folder | Metric | Direction |
+|---|---|---|---|
+| Reaction Tester | `reaction/` | `ms` (Best-of-5 average) | lower is better |
+| Number Memory | `number-memory/` | `digits` | higher is better |
+| Chimp Test | `chimp-test/` | `gridSize` | higher is better |
+| Aim Trainer | `aim-trainer/` | `avgMs` | lower is better |
+
+Reaction Tester additionally shows a percentile stat ("Faster than X% of players") and all 4 games have a Share button (copies a short result summary to the clipboard). `history.html?game=<name>` shows any game's leaderboard/history (defaults to `reaction`).
 
 ## 📊 Database Schema
 
@@ -57,18 +58,21 @@ reaction/
 
 ## 🏛️ Architecture
 
-### Frontend (`index.html`)
-- **Vanilla HTML/CSS/JS** for instant loading
-- **Progressive asset loading** for optimal performance
+### Frontend (`index.html` hub + `<game>/index.html`)
+- **Vanilla HTML/CSS/JS** for instant loading, one self-contained file per game
+- **Hub card grid** at root linking to each game and to `history.html`
 - **Browser fingerprinting** for unique player IDs
 - **localStorage** for player name persistence
-- **Responsive design** optimized for mobile and desktop
+- **Responsive design** optimized for mobile and desktop (44px+ tap targets, `touch-action: manipulation`)
 
-### Backend (`netlify/functions/save-reaction-score.js`)
-- **Netlify serverless function** handles score submissions
+### Backend (`src/index.js` — Cloudflare Worker)
+- **`POST /api/save-reaction-score`** — standalone handler (Best-of-5 averaging + percentile stat are reaction-specific)
+- **`POST /api/save-<game>-score`** (number-memory, chimp-test, aim-trainer) — share a generic `handleSaveScore(request, env, config)` handler parameterized by a per-game config object
 - **Basic auth** (`CONTENT_ADMIN_PASSWORD`) against content.jovylle.com's D1-backed API
-- **`POST`/`GET /api/scores`** on content.jovylle.com for score writes/reads (reaction game)
-- **Top 10 leaderboard** maintenance via `sort=top` query, computed live from the API
+- **`POST`/`GET /api/scores`** on content.jovylle.com for score writes/reads, one `game` value per game
+- **Leaderboard** maintenance via `sort=top` query (assumed metric-agnostic — best-first for whichever game), computed live from the API
+- **Rate limiting**: shared `checkRateLimit(env, { playerId, ip })` helper backed by the `SCORE_RATE_LIMIT` KV namespace — 5s cooldown + 100/day cap per key, fails open on KV errors
+- **Input hardening**: `sanitizeField` strips control chars and caps length on `playerName`/`playerId`; 500 responses no longer leak internal error details to clients
 
 ### Authentication System
 - **Basic auth** (`admin:${CONTENT_ADMIN_PASSWORD}`, base64-encoded) for score writes to content.jovylle.com
@@ -95,46 +99,54 @@ reaction/
 - **Public transparency** via GitHub repository
 
 ### 🔒 Security & Reliability
-- **Rate limiting** (80-1000ms valid range)
-- **Input validation** on frontend and backend
-- **Error handling** with graceful degradation
-- **Retry logic** for network failures
+- **Per-game metric range validation** (e.g. reaction 80-1000ms) on frontend and backend
+- **Rate limiting** via KV — 5s cooldown + 100/day cap per player, fails open on infra errors
+- **Input sanitization** — control-char stripping and length caps on player-supplied name/id
+- **Error handling** with graceful degradation; internal error details are never leaked in API responses
 
 ## 📁 File Structure
 
 ```
 playbase/
-├── index.html                           # Main game interface
-├── netlify/
-│   └── functions/
-│       └── save-reaction-score.js       # Score submission API
-├── reaction/
-│   ├── latest.json                      # Latest score
-│   └── top.json                         # Top 10 leaderboard
-├── .env                                 # GitHub App credentials
-├── netlify.toml                         # Netlify configuration
+├── index.html                           # Hub: card grid linking to all 4 games + history
+├── history.html                         # Shared history/leaderboard page (?game=<name>)
+├── reaction/index.html                  # Reaction Tester (Best-of-5, percentile, share)
+├── number-memory/index.html             # Number Memory
+├── chimp-test/index.html                # Chimp Test
+├── aim-trainer/index.html                # Aim Trainer
+├── schemas/
+│   ├── reaction.schema.json
+│   ├── number-memory.schema.json
+│   ├── chimp-test.schema.json
+│   └── aim-trainer.schema.json
+├── src/
+│   └── index.js                         # Cloudflare Worker (/api/* routes, rate limiting)
+├── wrangler.jsonc                       # Cloudflare Workers + Static Assets config, KV binding
+├── .assetsignore                        # Files excluded from static-asset upload
+├── .github/workflows/deploy.yml         # wrangler deploy on push to master
+├── .graph/discovery-log.yaml            # /discover run history
 ├── PROJECT_OVERVIEW.md                  # This documentation
 └── README.md                            # Basic project info
 ```
 
 ## 🔧 Environment Setup
 
-### Required Environment Variables
+### Required Secrets / Variables (Cloudflare)
+Set the secret with `wrangler secret put CONTENT_ADMIN_PASSWORD`; `CONTENT_API_BASE`
+is an optional plain var (defaults to `https://content.jovylle.com`).
 ```bash
-GITHUB_APP_ID=123456
-GITHUB_INSTALLATION_ID=789012
-GITHUB_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n..."
+CONTENT_ADMIN_PASSWORD=...            # secret (wrangler secret put)
+CONTENT_API_BASE=https://content.jovylle.com   # optional var
 ```
-
-### GitHub App Permissions
-- **Contents: Read and Write** (for JSON file updates)
-- **Metadata: Read** (for repository access)
+In CI, `.github/workflows/deploy.yml` needs a `CLOUDFLARE_API_TOKEN` (and, for
+multi-account tokens, `CLOUDFLARE_ACCOUNT_ID`) repo secret.
 
 ## 🌐 Deployment
 
-- **Frontend**: Netlify static hosting
-- **Backend**: Netlify Functions (serverless)
-- **Database**: GitHub repository (jovylle/playbase)
+- **Hosting**: Cloudflare Workers + Static Assets
+- **Backend**: Cloudflare Worker (`src/index.js`, `/api/*` routes)
+- **Score database**: content.jovylle.com `/api/scores` (D1-backed)
+- **Deploy**: `wrangler deploy`, automated on push to `master`
 - **Domain**: https://fast.jovylle.com
 
 ## 🎮 Game Flow
@@ -150,11 +162,9 @@ GITHUB_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n..."
 ## 🔮 Future Expansions
 
 ### Additional Games
-- **Memory tests** (sequence recall)
 - **Typing speed** tests
 - **Math problems** (speed calculation)
 - **Color matching** games
-- **Pattern recognition** challenges
 
 ### Enhanced Features
 - **Game categories** with separate leaderboards
@@ -236,7 +246,7 @@ const playerName = savedName || generateDefaultName();
 
 This project demonstrates:
 - **Alternative database** solutions for simple use cases
-- **Serverless architecture** with Netlify Functions
+- **Serverless architecture** with Cloudflare Workers + Static Assets
 - **GitHub API** advanced usage patterns
 - **JWT authentication** implementation
 - **Real-time data** updates without WebSockets

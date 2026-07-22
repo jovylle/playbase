@@ -1,0 +1,37 @@
+# Files that must NOT be uploaded as public static assets.
+# Servable content kept OUT of this list: index.html (hub page),
+# reaction/index.html (game page), history.html, image.png,
+# reaction/*.json (the frontend reads those JSON files directly).
+
+# Worker source + tooling
+src/
+wrangler.jsonc
+.assetsignore
+package.json
+package-lock.json
+node_modules/
+.gitignore
+
+# Repo / CI / editor
+.git/
+.github/
+.claude/
+
+# Docs and schemas (not for public serving)
+README.md
+PROJECT_OVERVIEW.md
+CLAUDE.md
+VERSION
+schemas/
+examples/
+
+# Leftover Netlify artifacts
+netlify/
+netlify.toml
+.netlify/
+.env
+
+# Local secrets / wrangler state (never meant to be served)
+.dev.vars
+.dev.vars*
+.wrangler/

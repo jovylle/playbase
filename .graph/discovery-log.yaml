@@ -1,0 +1,87 @@
+# /discover run log for Playbase.
+# This is the first /discover run for this repo — it bootstraps .graph/.
+# Each future /discover run should append a new entry below, oldest first.
+
+- date: "2026-07-22"
+  vision: >
+    A mini-game platform offering quick, skill-testing games for casual
+    browser play with a public, stranger-friendly leaderboard. Reference
+    points: HumanBenchmark, Wordle, itch.io.
+
+  interview:
+    - question: "Who are the primary users?"
+      answer: "Public strangers (general audience), not a private/friends group."
+    - question: "What is the main problem the product solves?"
+      answer: "No centralized, lightweight platform for quick cognitive/reflex skill-testing games."
+    - question: "Which platforms should it target?"
+      answer: "Web only (responsive/mobile browser), no native apps."
+    - question: "What matters most right now?"
+      answer: "Simplicity — minimize scope and complexity above all else."
+    - question: "What products are most similar / good reference points?"
+      answer: "HumanBenchmark, Wordle, itch.io."
+
+  proposed_features:
+    - name: "Game hub / landing page"
+      rating: 5
+      description: >
+        itch.io-style hub page listing multiple games via a card grid.
+        Cheap to build upfront, becomes load-bearing once more games exist.
+      status: approved
+    - name: "Shareable result card"
+      rating: 5
+      description: >
+        Wordle-style "copy result to clipboard" showing score/percentile —
+        the main organic-growth lever for a stranger-audience site.
+      status: approved
+    - name: "Score integrity / basic rate-limiting"
+      rating: 4
+      description: >
+        Per-fingerprint (playerId, falling back to IP) rate-limiting to
+        blunt bot/scripted spam on the public leaderboard.
+      status: approved
+    - name: "Percentile stat on result screen"
+      rating: 4
+      description: >
+        "Faster than X% of players" metric computed from a large leaderboard
+        sample.
+      status: approved
+    - name: "Second mini-game"
+      rating: 4
+      description: >
+        Additional game(s) to prove the platform vision beyond a single game;
+        reuses the established score/leaderboard pattern.
+      status: approved
+      note: >
+        User expanded this from "one more game" to "all 3 candidate games":
+        Number Memory, Chimp Test, Aim Trainer.
+    - name: "Difficulty/trial modes for Reaction Tester"
+      rating: 4
+      description: >
+        Best-of-5 round averaging with false-start detection/penalty — adds
+        depth to the existing game without new infrastructure.
+      status: approved
+    - name: "Mobile/touch UX pass"
+      rating: 4
+      description: >
+        Verify tap/click responsiveness, eliminate scroll jank and
+        double-tap-zoom issues on touch devices across all pages.
+      status: approved
+
+  rejected_features:
+    - name: "Daily challenge + streak"
+      reason: "Cut for complexity vs. the user's stated 'simplicity first' priority."
+    - name: "Player accounts"
+      reason: "Conflicts with the public-stranger, no-signup audience model."
+    - name: "Real-time multiplayer"
+      reason: "Out of scope for a lightweight, simplicity-first platform."
+
+  outcome: >
+    All 7 recommended features approved and implemented in one session across
+    5 phases: (0) hub + per-game folder restructure, (1) KV-backed rate
+    limiting + input sanitization, (2) three new games (Number Memory, Chimp
+    Test, Aim Trainer), (3) Reaction Tester Best-of-5/percentile/share, (4)
+    mobile/touch UX audit, (5) this log + docs update.
+
+  note: >
+    First /discover run for this repo — this file (.graph/discovery-log.yaml)
+    did not exist before this run.

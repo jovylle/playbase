@@ -58,21 +58,23 @@ This guide walks you through creating a GitHub App that can write to your playba
 
 ## 🌐 Step 4: Set Environment Variables
 
-You now have three pieces of information needed for your serverless function:
+You now have three pieces of information needed for your serverless function.
 
-### For Netlify:
+> Note: this GitHub App / JWT flow is the **legacy** pattern used by other
+> game data still committed directly to this repo. Current reaction-score
+> writes go through `src/index.js` (Cloudflare Worker) → `content.jovylle.com/api/scores`,
+> which uses `CONTENT_ADMIN_PASSWORD` (Basic auth), not this GitHub App flow.
 
-1. **Go to your Netlify site dashboard**
-2. **Go to Site settings → Environment variables**
-3. **Add these variables:**
+### For Cloudflare Workers:
 
-```bash
-GITHUB_APP_ID=123456
-GITHUB_INSTALLATION_ID=12345678
-GITHUB_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----
-MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC...
------END PRIVATE KEY-----"
-```
+1. **Set each variable as a Worker secret** (not a plain `vars` entry, since these are sensitive):
+   ```bash
+   wrangler secret put GITHUB_APP_ID
+   wrangler secret put GITHUB_INSTALLATION_ID
+   wrangler secret put GITHUB_PRIVATE_KEY
+   ```
+2. **Paste the value when prompted** — for `GITHUB_PRIVATE_KEY`, paste the PEM contents with real newlines; `wrangler secret put` handles the encoding.
+3. **Verify** with `wrangler secret list` (names only, values are never shown).
 
 ### For Vercel:
 

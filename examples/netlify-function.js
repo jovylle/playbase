@@ -1,3 +1,8 @@
+// LEGACY EXAMPLE: this documents the old GitHub-Contents-API JSON-database
+// pattern. Current reaction-score writes no longer use this — they go
+// through the Cloudflare Worker at src/index.js, which POSTs to
+// content.jovylle.com/api/scores instead of committing JSON back to this repo.
+// This pattern is still relevant for other legacy game data (see CLAUDE.md).
 const jwt = require('jsonwebtoken');
 
 /**
