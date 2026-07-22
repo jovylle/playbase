@@ -88,9 +88,11 @@ GITHUB_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
 
 ### 3. Serverless Function Example
 
-> Note: this shows the legacy GitHub-Contents pattern. Current reaction-score
-> writes go through the Cloudflare Worker at `src/index.js`, which posts to
-> `content.jovylle.com/api/scores` instead of committing JSON back to this repo.
+> Note: this shows the legacy GitHub-Contents pattern. Current score writes go
+> through the Cloudflare Worker at `src/index.js`, which inserts directly into
+> a Cloudflare D1 database (`cms-db`, bound as `env.DB`) instead of committing
+> JSON back to this repo or proxying through content.jovylle.com. See
+> `PROJECT_OVERVIEW.md` for the current architecture and sample `curl` usage.
 
 ```javascript
 // Cloudflare Worker example (legacy Netlify Function shown for reference)
