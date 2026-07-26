@@ -151,7 +151,6 @@ playbase/
 │   └── index.js                         # Cloudflare Worker (/api/* routes, rate limiting)
 ├── wrangler.jsonc                       # Cloudflare Workers + Static Assets config, KV binding
 ├── .assetsignore                        # Files excluded from static-asset upload
-├── .github/workflows/deploy.yml         # wrangler deploy on push to master
 ├── .graph/discovery-log.yaml            # /discover run history
 ├── PROJECT_OVERVIEW.md                  # This documentation
 └── README.md                            # Basic project info
@@ -173,17 +172,18 @@ direct D1 access at deploy time.
 CONTENT_ADMIN_PASSWORD=...            # secret — unused by score routes now
 CONTENT_API_BASE=https://content.jovylle.com   # optional var — unused by score routes now
 ```
-In CI, `.github/workflows/deploy.yml` needs a `CLOUDFLARE_API_TOKEN` (and, for
-multi-account tokens, `CLOUDFLARE_ACCOUNT_ID`) repo secret for `wrangler deploy`
-to authenticate.
+There is no CI auto-deploy — deploys are manual only, run `npm run deploy`
+(= `wrangler deploy`) locally after pushing. `.github/workflows/deploy.yml` was
+removed because it depended on a `CLOUDFLARE_API_TOKEN` repo secret that was
+never set, so every push silently failed to deploy while `master` looked green.
 
 ## 🌐 Deployment
 
 - **Hosting**: Cloudflare Workers + Static Assets
 - **Backend**: Cloudflare Worker (`src/index.js`, `/api/*` routes)
 - **Score database**: Cloudflare D1, `cms-db`, bound directly as `env.DB` — no HTTP hop through content.jovylle.com
-- **Deploy**: `wrangler deploy`, automated on push to `master`
-- **Domain**: https://fast.jovylle.com
+- **Deploy**: manual only — run `npm run deploy` locally after merging changes that should go live
+- **Domains**: https://fast.jovylle.com and https://play.jovylle.com (both bound as custom domains to the same Worker)
 
 ## 🧪 Sample Usage
 
