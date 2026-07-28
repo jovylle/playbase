@@ -55,6 +55,48 @@ const SCORE_METRIC_ALIASES = {
   'chimp-test': ['gridSize', 'grid_size'],
   'aim-trainer': ['avgMs']
 };
+
+// Static game metadata for the public GET /api/games endpoint. Must be kept
+// in sync with index.html's hub cards and the game configs below.
+const GAMES_METADATA = [
+  {
+    slug: 'reaction',
+    title: 'Reaction Tester',
+    description: 'How fast are your reflexes? Click the instant the screen turns red.',
+    icon: '⚡',
+    url: '/reaction/',
+    historyUrl: '/history.html?game=reaction',
+    metric: { field: 'ms', unit: 'ms', betterDirection: 'asc' }
+  },
+  {
+    slug: 'number-memory',
+    title: 'Number Memory',
+    description: 'Memorize an ever-growing number for as long as you can.',
+    icon: '🔢',
+    url: '/number-memory/',
+    historyUrl: '/history.html?game=number-memory',
+    metric: { field: 'digits', unit: 'digits', betterDirection: 'desc' }
+  },
+  {
+    slug: 'chimp-test',
+    title: 'Chimp Test',
+    description: 'Tap the numbered tiles in order from memory before they disappear.',
+    icon: '🐵',
+    url: '/chimp-test/',
+    historyUrl: '/history.html?game=chimp-test',
+    metric: { field: 'grid_size', unit: 'tiles', betterDirection: 'desc' }
+  },
+  {
+    slug: 'aim-trainer',
+    title: 'Aim Trainer',
+    description: 'Click the targets as fast as you can to sharpen your reflexes.',
+    icon: '🎯',
+    url: '/aim-trainer/',
+    historyUrl: '/history.html?game=aim-trainer',
+    metric: { field: 'avgMs', unit: 'ms', betterDirection: 'asc' }
+  }
+];
+
 // Reaction-only: sample size used to compute the percentile field. Large
 // enough to be a meaningful percentile estimate without fetching the entire
 // leaderboard on every submission.
@@ -96,6 +138,10 @@ export default {
 
     if (url.pathname === '/api/scores') {
       return handleGetScores(request, env);
+    }
+
+    if (url.pathname === '/api/games') {
+      return handleGetGames(request);
     }
 
     // Not an API route -> fall through to static assets.
@@ -437,6 +483,21 @@ async function handleGetScores(request, env) {
     // Do not leak internal error details (D1, config) to clients.
     return json(500, { error: 'Failed to fetch scores' });
   }
+}
+
+/**
+ * Public read endpoint: GET /api/games.
+ *
+ * Returns static metadata about all games so external sites can render
+ * icons/titles/descriptions/links without hardcoding them. No database or
+ * auth involved — purely static data mirrored from the hub page.
+ */
+async function handleGetGames(request) {
+  if (request.method !== 'GET') {
+    return json(405, { error: 'Method not allowed' });
+  }
+
+  return json(200, { games: GAMES_METADATA });
 }
 
 /**
