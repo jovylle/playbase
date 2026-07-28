@@ -4,56 +4,114 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Playbase History</title>
+
+    <!--
+        Restyled to match the shadcn/ui-inspired dark design system used on
+        the hub page (index.html). Visual-only: Tailwind CDN + Inter font +
+        --hist-* zinc/rose dark tokens. No fetch/sort/render logic changed.
+    -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
     <style>
         :root {
-            color-scheme: light;
-            --bg: #f4f7fb;
-            --card: #ffffff;
-            --text: #1f2937;
-            --muted: #6b7280;
-            --border: #dbe4f0;
-            --primary: #2563eb;
-            --primary-dark: #1d4ed8;
-            --accent: #7c3aed;
-            --success: #0f766e;
+            color-scheme: dark;
+            --hist-bg: #09090b;
+            --hist-surface: #18181b;
+            --hist-surface-hover: #1f1f23;
+            --hist-border: #27272a;
+            --hist-border-hover: #3f3f46;
+            --hist-text: #fafafa;
+            --hist-muted: #a1a1aa;
+            --hist-accent: #f43f5e;
+            --hist-accent-soft: rgba(244, 63, 94, 0.14);
         }
 
         * {
             box-sizing: border-box;
         }
 
-        body {
+        html, body {
             margin: 0;
-            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: linear-gradient(180deg, #eef4ff 0%, var(--bg) 220px);
-            color: var(--text);
+            min-height: 100%;
+        }
+
+        body {
+            font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background-color: var(--hist-bg);
+            color: var(--hist-text);
             touch-action: manipulation;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Gradient-mesh background, same recipe as the hub page. */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background:
+                radial-gradient(circle at 15% 10%, rgba(244, 63, 94, 0.16), transparent 40%),
+                radial-gradient(circle at 85% 15%, rgba(99, 102, 241, 0.14), transparent 40%),
+                radial-gradient(circle at 50% 90%, rgba(16, 185, 129, 0.10), transparent 45%),
+                var(--hist-bg);
+        }
+
+        /* Subtle dot-grid overlay on top of the gradient mesh */
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+            background-size: 24px 24px;
+            mask-image: radial-gradient(circle at 50% 0%, black 0%, transparent 75%);
         }
 
         .page {
             max-width: 1100px;
             margin: 0 auto;
-            padding: 32px 20px 48px;
+            padding: 40px 20px 48px;
+        }
+
+        .all-games-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: var(--hist-muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: color 0.15s ease;
+        }
+
+        .all-games-link:hover {
+            color: var(--hist-accent);
         }
 
         .hero {
-            background: linear-gradient(135deg, #1d4ed8 0%, #7c3aed 100%);
-            color: white;
-            border-radius: 24px;
+            background: linear-gradient(160deg, var(--hist-surface), rgba(24, 24, 27, 0.4));
+            border: 1px solid var(--hist-border);
+            color: var(--hist-text);
+            border-radius: 20px;
             padding: 28px;
-            box-shadow: 0 20px 45px rgba(37, 99, 235, 0.25);
+            backdrop-filter: blur(6px);
         }
 
         .hero h1 {
             margin: 0 0 10px;
             font-size: clamp(28px, 5vw, 42px);
+            font-weight: 800;
+            letter-spacing: -0.02em;
         }
 
         .hero p {
             margin: 0;
             max-width: 700px;
             line-height: 1.6;
-            color: rgba(255, 255, 255, 0.9);
+            color: var(--hist-muted);
         }
 
         .hero-actions {
@@ -73,8 +131,9 @@
             border-radius: 999px;
             text-decoration: none;
             font-weight: 600;
+            font-size: 14px;
             border: 1px solid transparent;
-            transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+            transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease, color 0.2s ease;
         }
 
         .button:hover {
@@ -82,14 +141,22 @@
         }
 
         .button-primary {
-            background: white;
-            color: var(--primary);
+            background: var(--hist-accent);
+            color: #fff;
+        }
+
+        .button-primary:hover {
+            background: #fb7185;
         }
 
         .button-secondary {
-            background: rgba(255, 255, 255, 0.12);
-            color: white;
-            border-color: rgba(255, 255, 255, 0.22);
+            background: var(--hist-surface-hover);
+            color: var(--hist-text);
+            border-color: var(--hist-border);
+        }
+
+        .button-secondary:hover {
+            border-color: var(--hist-border-hover);
         }
 
         .stats {
@@ -101,10 +168,9 @@
 
         .stat-card,
         .panel {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+            background: var(--hist-surface);
+            border: 1px solid var(--hist-border);
+            border-radius: 16px;
         }
 
         .stat-card {
@@ -112,22 +178,24 @@
         }
 
         .stat-label {
-            font-size: 13px;
+            font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 0.08em;
-            color: var(--muted);
+            font-weight: 600;
+            color: var(--hist-muted);
             margin-bottom: 8px;
         }
 
         .stat-value {
-            font-size: clamp(24px, 4vw, 36px);
+            font-size: clamp(24px, 4vw, 34px);
             font-weight: 700;
+            letter-spacing: -0.01em;
         }
 
         .stat-subtext {
             margin-top: 6px;
-            color: var(--muted);
-            font-size: 14px;
+            color: var(--hist-muted);
+            font-size: 13px;
         }
 
         .controls {
@@ -142,7 +210,9 @@
 
         .controls h2 {
             margin: 0;
-            font-size: 22px;
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
         }
 
         .controls-right {
@@ -153,22 +223,40 @@
         }
 
         .muted {
-            color: var(--muted);
+            color: var(--hist-muted);
+            font-size: 14px;
         }
 
         label {
             font-size: 14px;
-            color: var(--muted);
+            color: var(--hist-muted);
         }
 
+        /* Segmented-pill styling for the native <select>: it can't fully
+           become a shadcn "tabs" control without changing markup/behavior,
+           so it's styled as a rounded pill control with the same tokens
+           instead. */
         select {
-            border: 1px solid var(--border);
-            background: white;
-            border-radius: 12px;
-            padding: 13px 14px;
+            border: 1px solid var(--hist-border);
+            background: var(--hist-surface-hover);
+            color: var(--hist-text);
+            border-radius: 999px;
+            padding: 11px 16px;
             min-height: 44px;
             font: inherit;
-            color: var(--text);
+            font-size: 14px;
+            appearance: none;
+            cursor: pointer;
+            transition: border-color 0.15s ease, background 0.15s ease;
+        }
+
+        select:hover {
+            border-color: var(--hist-border-hover);
+        }
+
+        select:focus-visible {
+            outline: 2px solid var(--hist-accent);
+            outline-offset: 2px;
         }
 
         .table-panel {
@@ -182,39 +270,60 @@
         }
 
         thead {
-            background: #f8fbff;
+            background: var(--hist-surface-hover);
         }
 
         th,
         td {
             text-align: left;
             padding: 14px 18px;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid var(--hist-border);
         }
 
         th {
-            font-size: 13px;
+            font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 0.08em;
-            color: var(--muted);
+            font-weight: 600;
+            color: var(--hist-muted);
         }
 
         td {
             font-size: 15px;
+            color: var(--hist-text);
+        }
+
+        tbody tr {
+            transition: background 0.12s ease;
         }
 
         tbody tr:hover {
-            background: #f8fbff;
+            background: var(--hist-surface-hover);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        td code {
+            font-size: 13px;
+            color: var(--hist-muted);
+            background: var(--hist-surface-hover);
+            border: 1px solid var(--hist-border);
+            border-radius: 6px;
+            padding: 2px 6px;
         }
 
         .score-chip {
             display: inline-block;
             min-width: 74px;
-            padding: 6px 10px;
+            padding: 6px 12px;
             border-radius: 999px;
-            background: #eff6ff;
-            color: var(--primary);
+            background: var(--hist-accent-soft);
+            border: 1px solid rgba(244, 63, 94, 0.25);
+            color: #fb7185;
             font-weight: 700;
+            font-size: 13px;
             text-align: center;
         }
 
@@ -222,30 +331,17 @@
         .error {
             padding: 32px 20px;
             text-align: center;
-            color: var(--muted);
+            color: var(--hist-muted);
         }
 
         .error {
-            color: #b91c1c;
+            color: #fb7185;
         }
 
         .footer-note {
             margin-top: 14px;
             font-size: 14px;
-            color: var(--muted);
-        }
-
-        .all-games-link {
-            display: inline-block;
-            margin-bottom: 16px;
-            color: var(--muted);
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .all-games-link:hover {
-            color: var(--primary);
+            color: var(--hist-muted);
         }
 
         @media (max-width: 900px) {
@@ -256,7 +352,7 @@
 
         @media (max-width: 640px) {
             .page {
-                padding: 20px 14px 32px;
+                padding: 24px 14px 32px;
             }
 
             .hero,

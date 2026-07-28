@@ -8,22 +8,68 @@
     <meta http-equiv="Expires" content="0">
     <title>🎯 Aim Trainer - Beat the Leaderboard!</title>
 
-    <!-- Material Design Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!--
+        shadcn/ui-inspired dark design system, matching the hub page
+        (see /index.html). Tailwind via CDN (utility classes only, no
+        build step) plus a hand-written --at-* CSS token set. Roboto Mono
+        is kept for the in-game HUD readout (monospace numbers).
+    -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
 
     <style>
+        :root {
+            --at-bg: #09090b;
+            --at-surface: #18181b;
+            --at-surface-hover: #1f1f23;
+            --at-border: #27272a;
+            --at-border-hover: #3f3f46;
+            --at-text: #fafafa;
+            --at-muted: #a1a1aa;
+            --at-accent: #f43f5e;
+            --at-accent-soft: rgba(244, 63, 94, 0.14);
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #0f1115;
-            color: #e8eaf0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: var(--at-bg);
+            color: var(--at-text);
             overflow: auto;
             user-select: none;
             margin: 0;
             padding: 0;
             touch-action: manipulation;
             min-height: 100vh;
+            position: relative;
+        }
+
+        /* Gradient-mesh background: layered soft radial blobs, fixed so it
+           doesn't scroll with content. Pure CSS, mirrors the hub page. */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background:
+                radial-gradient(circle at 15% 10%, rgba(244, 63, 94, 0.16), transparent 40%),
+                radial-gradient(circle at 85% 15%, rgba(99, 102, 241, 0.14), transparent 40%),
+                radial-gradient(circle at 50% 90%, rgba(16, 185, 129, 0.10), transparent 45%),
+                var(--at-bg);
+        }
+
+        /* Subtle dot-grid overlay on top of the gradient mesh */
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+            background-size: 24px 24px;
+            mask-image: radial-gradient(circle at 50% 0%, black 0%, transparent 75%);
         }
 
         .game-container {
@@ -41,27 +87,30 @@
         .all-games-link {
             display: inline-block;
             margin-bottom: 16px;
-            color: #ff5c8a;
+            color: var(--at-muted);
             text-decoration: none;
             font-size: 14px;
             font-weight: 500;
+            transition: color 0.18s ease;
         }
 
         .all-games-link:hover {
-            text-decoration: underline;
+            color: var(--at-accent);
+            text-decoration: none;
         }
 
         .title {
             font-size: clamp(32px, 8vw, 48px);
-            font-weight: 300;
+            font-weight: 800;
+            letter-spacing: -0.03em;
             margin-bottom: 8px;
             text-align: center;
-            color: #f5f5f7;
+            color: var(--at-text);
         }
 
         .subtitle {
             font-size: clamp(14px, 4vw, 18px);
-            color: #9aa0ac;
+            color: var(--at-muted);
             margin-bottom: 24px;
             text-align: center;
             font-weight: 400;
@@ -74,50 +123,51 @@
 
         .current-player {
             font-size: 16px;
-            color: #c7cad1;
+            color: var(--at-muted);
             margin-bottom: 12px;
         }
 
         .change-name-btn {
-            background: #2b2f3a;
-            border: none;
+            background: transparent;
+            border: 1px solid var(--at-border);
             padding: 14px 16px;
             min-height: 44px;
             font-size: 14px;
-            font-weight: 500;
-            color: #e8eaf0;
-            border-radius: 4px;
+            font-weight: 600;
+            color: var(--at-text);
+            border-radius: 10px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            transition: background 0.18s ease, border-color 0.18s ease;
         }
 
         .change-name-btn:hover {
-            background: #3a3f4d;
+            background: var(--at-surface-hover);
+            border-color: var(--at-border-hover);
         }
 
         .play-btn {
-            background: #ff5c8a;
+            background: var(--at-accent);
             border: none;
             padding: 16px 32px;
             font-size: 16px;
-            font-weight: 500;
+            font-weight: 600;
             color: white;
-            border-radius: 4px;
+            border-radius: 10px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 4px rgba(255,92,138,0.3);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            transition: transform 0.15s ease, filter 0.15s ease;
+            box-shadow: 0 2px 4px rgba(244, 63, 94, 0.3);
+            letter-spacing: 0.01em;
         }
 
         .play-btn:hover {
-            background: #ff3f76;
-            box-shadow: 0 4px 8px rgba(255,92,138,0.4);
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(244, 63, 94, 0.4);
         }
 
         .play-btn:active {
-            background: #e02e63;
+            filter: brightness(0.95);
+            transform: translateY(0);
         }
 
         .name-modal {
@@ -134,24 +184,26 @@
         }
 
         .name-modal-content {
-            background: #1a1d24;
+            background: linear-gradient(160deg, var(--at-surface), rgba(24, 24, 27, 0.6));
+            border: 1px solid var(--at-border);
             padding: 24px;
-            border-radius: 8px;
+            border-radius: 16px;
             box-shadow: 0 4px 16px rgba(0,0,0,0.4);
             max-width: 400px;
             width: 90%;
             max-height: 80vh;
             overflow-y: auto;
+            backdrop-filter: blur(6px);
         }
 
         .name-modal h3 {
             margin-bottom: 16px;
-            color: #f5f5f7;
+            color: var(--at-text);
         }
 
         .name-modal p {
             margin-bottom: 16px;
-            color: #9aa0ac;
+            color: var(--at-muted);
         }
 
         .word-selection {
@@ -170,7 +222,7 @@
         .word-group h4 {
             margin: 0;
             font-size: 16px;
-            color: #c7cad1;
+            color: var(--at-muted);
             font-weight: 500;
         }
 
@@ -181,16 +233,16 @@
         }
 
         .word-option {
-            background: #23262f;
-            border: 1px solid #33374a;
+            background: var(--at-surface-hover);
+            border: 1px solid var(--at-border);
             padding: 14px 6px;
             min-height: 44px;
-            border-radius: 4px;
+            border-radius: 10px;
             cursor: pointer;
             text-align: center;
             font-size: 13px;
             font-weight: 500;
-            color: #c7cad1;
+            color: var(--at-muted);
             transition: all 0.2s ease;
             display: flex;
             align-items: center;
@@ -199,20 +251,21 @@
         }
 
         .word-option:hover {
-            background: #2c3040;
-            border-color: #ff5c8a;
+            background: var(--at-surface-hover);
+            border-color: var(--at-accent);
         }
 
         .word-option.selected {
-            background: #ff5c8a;
+            background: var(--at-accent);
             color: white;
-            border-color: #ff5c8a;
+            border-color: var(--at-accent);
         }
 
         .name-preview {
-            background: #23262f;
+            background: var(--at-surface-hover);
+            border: 1px solid var(--at-border);
             padding: 12px;
-            border-radius: 4px;
+            border-radius: 10px;
             margin-bottom: 20px;
             text-align: center;
         }
@@ -220,25 +273,26 @@
         .name-preview p {
             margin: 0;
             font-size: 16px;
-            color: #c7cad1;
+            color: var(--at-muted);
             font-weight: 500;
         }
 
         .name-preview span {
-            color: #ff5c8a;
+            color: var(--at-accent);
             font-weight: 600;
         }
 
         .confirm-btn {
-            background: #ff5c8a !important;
+            background: var(--at-accent) !important;
         }
 
         .confirm-btn:hover {
-            background: #ff3f76 !important;
+            filter: brightness(1.1);
         }
 
         .confirm-btn:disabled {
-            background: #4a4d57 !important;
+            background: var(--at-border-hover) !important;
+            filter: none;
             cursor: not-allowed;
         }
 
@@ -251,24 +305,24 @@
             width: 120px;
             padding: 13px 12px;
             min-height: 44px;
-            border: 1px solid #33374a;
-            border-radius: 4px;
+            border: 1px solid var(--at-border);
+            border-radius: 10px;
             font-size: 16px;
             text-align: center;
-            background: #23262f;
-            color: #e8eaf0;
+            background: var(--at-surface-hover);
+            color: var(--at-text);
             transition: all 0.2s ease;
             box-sizing: border-box;
         }
 
         .number-input input:focus {
             outline: none;
-            border-color: #ff5c8a;
-            box-shadow: 0 0 0 2px rgba(255, 92, 138, 0.2);
+            border-color: var(--at-accent);
+            box-shadow: 0 0 0 2px var(--at-accent-soft);
         }
 
         .number-input input::placeholder {
-            color: #6a6e7a;
+            color: var(--at-muted);
         }
 
         .modal-buttons {
@@ -276,20 +330,21 @@
         }
 
         .modal-btn {
-            background: #2b2f3a;
-            border: none;
+            background: transparent;
+            border: 1px solid var(--at-border);
             padding: 14px 20px;
             min-height: 44px;
             font-size: 14px;
-            font-weight: 500;
-            color: #e8eaf0;
-            border-radius: 4px;
+            font-weight: 600;
+            color: var(--at-text);
+            border-radius: 10px;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: background 0.18s ease, border-color 0.18s ease;
         }
 
         .modal-btn:hover {
-            background: #3a3f4d;
+            background: var(--at-surface-hover);
+            border-color: var(--at-border-hover);
         }
 
         /* Game screen */
@@ -315,11 +370,11 @@
             margin-bottom: 16px;
             font-family: 'Roboto Mono', monospace;
             font-size: 16px;
-            color: #c7cad1;
+            color: var(--at-muted);
         }
 
         .game-hud strong {
-            color: #ff5c8a;
+            color: var(--at-accent);
         }
 
         .play-area {
@@ -328,12 +383,13 @@
             height: 50vh;
             max-height: 420px;
             min-height: 280px;
-            border: 1px solid #33374a;
-            border-radius: 8px;
+            border: 1px solid var(--at-border);
+            border-radius: 16px;
             position: relative;
-            background: #14161c;
+            background: linear-gradient(160deg, var(--at-surface), rgba(24, 24, 27, 0.4));
             box-shadow: 0 2px 8px rgba(0,0,0,0.4);
             overflow: hidden;
+            backdrop-filter: blur(6px);
         }
 
         .target {
@@ -341,8 +397,8 @@
             width: 44px;
             height: 44px;
             border-radius: 50%;
-            background: radial-gradient(circle at 35% 35%, #ff8fae, #ff5c8a);
-            box-shadow: 0 0 12px rgba(255, 92, 138, 0.7);
+            background: radial-gradient(circle at 35% 35%, #fb7185, var(--at-accent));
+            box-shadow: 0 0 16px rgba(244, 63, 94, 0.8), 0 0 0 3px var(--at-accent-soft);
             cursor: pointer;
             transform: scale(0);
             animation: pop-in 0.12s ease-out forwards;
@@ -364,43 +420,45 @@
             justify-content: center;
             padding: 32px;
             box-sizing: border-box;
-            background: #1a1d24;
-            border-radius: 8px;
+            background: linear-gradient(160deg, var(--at-surface), rgba(24, 24, 27, 0.4));
+            border: 1px solid var(--at-border);
+            border-radius: 16px;
             margin: 20px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.4);
-            color: #e8eaf0;
+            color: var(--at-text);
+            backdrop-filter: blur(6px);
         }
 
         .result-time {
             font-size: clamp(56px, 13vw, 88px);
-            font-weight: 300;
+            font-weight: 800;
+            letter-spacing: -0.02em;
             margin: 24px 0;
-            color: #ff5c8a;
+            color: var(--at-accent);
         }
 
         .result-message {
             font-size: clamp(18px, 5vw, 24px);
             margin: 16px 0 40px 0;
-            color: #9aa0ac;
+            color: var(--at-muted);
             font-weight: 400;
         }
 
         .play-again-btn {
-            background: #ff5c8a;
+            background: var(--at-accent);
             border: none;
             padding: 14px 24px;
             min-height: 44px;
             box-sizing: border-box;
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 600;
             color: white;
-            border-radius: 4px;
+            border-radius: 10px;
             cursor: pointer;
             margin: 8px;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 4px rgba(255,92,138,0.3);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            transition: transform 0.15s ease, filter 0.15s ease;
+            box-shadow: 0 2px 4px rgba(244, 63, 94, 0.3);
+            letter-spacing: 0.01em;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -408,21 +466,27 @@
         }
 
         .play-again-btn:hover {
-            background: #ff3f76;
-            box-shadow: 0 4px 8px rgba(255,92,138,0.4);
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(244, 63, 94, 0.4);
         }
 
         .play-again-btn:active {
-            background: #e02e63;
+            filter: brightness(0.95);
+            transform: translateY(0);
         }
 
         .back-btn {
-            background: #2b2f3a;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            background: transparent;
+            border: 1px solid var(--at-border);
+            color: var(--at-text);
+            box-shadow: none;
         }
 
         .back-btn:hover {
-            background: #3a3f4d;
+            background: var(--at-surface-hover);
+            border-color: var(--at-border-hover);
+            box-shadow: none;
         }
 
         .history-link {
@@ -434,22 +498,24 @@
         }
 
         .game-info {
-            background: #1a1d24;
+            background: linear-gradient(160deg, var(--at-surface), rgba(24, 24, 27, 0.4));
+            border: 1px solid var(--at-border);
             padding: 20px;
-            border-radius: 4px;
+            border-radius: 16px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.4);
             margin-top: 24px;
             max-width: 500px;
             width: 100%;
-            color: #e8eaf0;
+            color: var(--at-text);
             text-align: left;
+            backdrop-filter: blur(6px);
         }
 
         .game-info h4 {
-            color: #ff5c8a;
+            color: var(--at-accent);
             margin: 16px 0 8px 0;
             font-size: 16px;
-            font-weight: 500;
+            font-weight: 600;
         }
 
         .game-info h4:first-child {
@@ -463,34 +529,36 @@
 
         .game-info li {
             margin: 4px 0;
-            color: #c7cad1;
+            color: var(--at-muted);
             font-size: 14px;
         }
 
         .game-info p {
             margin: 8px 0 16px 0;
-            color: #c7cad1;
+            color: var(--at-muted);
             font-size: 14px;
             line-height: 1.4;
         }
 
         .home-leaderboard {
-            background: #1a1d24;
+            background: linear-gradient(160deg, var(--at-surface), rgba(24, 24, 27, 0.4));
+            border: 1px solid var(--at-border);
             padding: 20px;
-            border-radius: 4px;
+            border-radius: 16px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.4);
             margin-top: 24px;
             max-width: 400px;
             width: 100%;
-            color: #e8eaf0;
+            color: var(--at-text);
+            backdrop-filter: blur(6px);
         }
 
         .home-leaderboard h3 {
             margin-bottom: 16px;
             font-size: 18px;
-            color: #f5f5f7;
+            color: var(--at-text);
             text-align: center;
-            font-weight: 500;
+            font-weight: 600;
         }
 
         .score-item {
@@ -498,16 +566,16 @@
             justify-content: space-between;
             align-items: center;
             padding: 8px 0;
-            border-bottom: 1px solid #2b2f3a;
+            border-bottom: 1px solid var(--at-border);
             font-family: 'Roboto Mono', monospace;
             font-size: 13px;
-            color: #c7cad1;
+            color: var(--at-muted);
             transition: all 0.2s ease;
         }
 
         .score-item:hover {
-            background: #23262f;
-            border-radius: 4px;
+            background: var(--at-surface-hover);
+            border-radius: 8px;
             padding: 8px 4px;
         }
 
@@ -516,8 +584,8 @@
         }
 
         .rank {
-            color: #ff5c8a;
-            font-weight: 500;
+            color: var(--at-accent);
+            font-weight: 600;
             min-width: 24px;
             font-size: 14px;
         }
@@ -528,12 +596,12 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            color: #c7cad1;
+            color: var(--at-muted);
         }
 
         .score-time {
-            color: #ff5c8a;
-            font-weight: 500;
+            color: var(--at-accent);
+            font-weight: 600;
             min-width: 60px;
             text-align: right;
             font-size: 13px;
@@ -549,12 +617,12 @@
             bottom: calc(100% + 8px);
             left: 50%;
             transform: translateX(-50%) translateY(4px);
-            background: #e8eaf0;
-            color: #14161c;
+            background: var(--at-text);
+            color: var(--at-bg);
             padding: 6px 12px;
-            border-radius: 4px;
+            border-radius: 8px;
             font-size: 12px;
-            font-weight: 500;
+            font-weight: 600;
             white-space: nowrap;
             opacity: 0;
             pointer-events: none;

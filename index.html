@@ -11,50 +11,114 @@
         Roboto styling) or history.html (Inter + blue/purple gradient
         design system) — those are separate, incompatible visual languages
         by design, not an oversight.
+
+        Uses Tailwind via CDN (utility classes only, no build step) plus a
+        hand-written shadcn/ui-style token set (--hub-* CSS vars mirror
+        shadcn's zinc/neutral dark theme) so the project stays pure static
+        HTML per CLAUDE.md.
     -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
     <style>
         :root {
-            --hub-bg: #0f0f14;
-            --hub-surface: #1a1a22;
-            --hub-border: #2c2c38;
-            --hub-text: #f2f2f5;
-            --hub-muted: #9a9aac;
-            --hub-accent: #ff5f5f;
+            --hub-bg: #09090b;
+            --hub-surface: #18181b;
+            --hub-surface-hover: #1f1f23;
+            --hub-border: #27272a;
+            --hub-border-hover: #3f3f46;
+            --hub-text: #fafafa;
+            --hub-muted: #a1a1aa;
+            --hub-accent: #f43f5e;
+            --hub-accent-soft: rgba(244, 63, 94, 0.14);
         }
 
         * {
             box-sizing: border-box;
         }
 
-        body {
+        html, body {
             margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: var(--hub-bg);
+            min-height: 100%;
+        }
+
+        body {
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background-color: var(--hub-bg);
             color: var(--hub-text);
             touch-action: manipulation;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Gradient-mesh background: layered soft radial blobs, fixed so it
+           doesn't scroll with content. Pure CSS, no image asset. */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background:
+                radial-gradient(circle at 15% 10%, rgba(244, 63, 94, 0.16), transparent 40%),
+                radial-gradient(circle at 85% 15%, rgba(99, 102, 241, 0.14), transparent 40%),
+                radial-gradient(circle at 50% 90%, rgba(16, 185, 129, 0.10), transparent 45%),
+                var(--hub-bg);
+        }
+
+        /* Subtle dot-grid overlay on top of the gradient mesh */
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+            background-size: 24px 24px;
+            mask-image: radial-gradient(circle at 50% 0%, black 0%, transparent 75%);
         }
 
         .hub {
-            max-width: 960px;
+            max-width: 1000px;
             margin: 0 auto;
-            padding: 56px 20px 40px;
+            padding: 72px 20px 48px;
         }
 
         header.hub-header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 48px;
+        }
+
+        .hub-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 999px;
+            background: var(--hub-accent-soft);
+            border: 1px solid rgba(244, 63, 94, 0.25);
+            color: #fb7185;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            margin-bottom: 18px;
         }
 
         header.hub-header h1 {
-            margin: 0 0 8px;
-            font-size: clamp(28px, 6vw, 44px);
-            letter-spacing: -0.02em;
+            margin: 0 0 10px;
+            font-size: clamp(32px, 6vw, 48px);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
         }
 
         header.hub-header p {
-            margin: 0;
+            margin: 0 auto;
+            max-width: 480px;
             color: var(--hub-muted);
             font-size: 16px;
+            line-height: 1.5;
         }
 
         .card-grid {
@@ -64,54 +128,84 @@
                width, which is still wider than 220px, so cards stack to a
                single column without overflowing. No change needed. */
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 20px;
+            gap: 16px;
         }
 
         .card {
             display: block;
-            background: var(--hub-surface);
+            position: relative;
+            background: linear-gradient(160deg, var(--hub-surface), rgba(24, 24, 27, 0.4));
             border: 1px solid var(--hub-border);
-            border-radius: 14px;
-            padding: 24px;
+            border-radius: 16px;
+            padding: 26px 24px;
             text-decoration: none;
             color: var(--hub-text);
-            transition: transform 0.15s ease, border-color 0.15s ease;
+            transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+            backdrop-filter: blur(6px);
         }
 
         .card:hover {
             transform: translateY(-4px);
+            border-color: var(--hub-border-hover);
+            background: linear-gradient(160deg, var(--hub-surface-hover), rgba(31, 31, 35, 0.5));
+        }
+
+        .card:hover .card-icon {
+            transform: scale(1.08);
             border-color: var(--hub-accent);
         }
 
         .card-icon {
-            font-size: 32px;
-            margin-bottom: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            font-size: 22px;
+            border-radius: 12px;
+            background: var(--hub-surface-hover);
+            border: 1px solid var(--hub-border);
+            margin-bottom: 16px;
+            transition: transform 0.18s ease, border-color 0.18s ease;
         }
 
         .card h2 {
             margin: 0 0 6px;
-            font-size: 20px;
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
         }
 
         .card p {
             margin: 0;
             color: var(--hub-muted);
             font-size: 14px;
-            line-height: 1.4;
+            line-height: 1.45;
         }
 
         .card-badge {
-            display: inline-block;
-            margin-top: 12px;
-            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 16px;
+            font-size: 11px;
             font-weight: 600;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.05em;
             text-transform: uppercase;
-            color: var(--hub-accent);
+            color: #4ade80;
+        }
+
+        .card-badge::before {
+            content: "";
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #4ade80;
+            box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.16);
         }
 
         footer.hub-footer {
-            margin-top: 48px;
+            margin-top: 56px;
             text-align: center;
             color: var(--hub-muted);
             font-size: 13px;
@@ -121,6 +215,7 @@
 <body>
     <div class="hub">
         <header class="hub-header">
+            <span class="hub-kicker">✨ 5 games, one leaderboard</span>
             <h1>🎮 Playbase</h1>
             <p>A tiny collection of browser mini-games. Pick one and try to beat the leaderboard.</p>
         </header>
